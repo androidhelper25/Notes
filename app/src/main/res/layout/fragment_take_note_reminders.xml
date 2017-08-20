@@ -1,0 +1,65 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    tools:context="com.example.sarthak.notes.fragments.TakeNotesFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/noteRemindersTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:hint="Title"
+                android:textSize="24sp"
+                android:textColorHint="@color/colorDividerLine"
+                android:textColor="@color/colorPrimaryText"
+                android:inputType="textCapSentences|textMultiLine"
+                android:layout_marginTop="25dp"
+                android:layout_marginStart="25dp"
+                android:layout_marginEnd="10dp"
+                android:maxLength="100"
+                android:maxLines="4" />
+
+            <EditText
+                android:id="@+id/noteRemindersBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:hint="Note"
+                android:textSize="18sp"
+                android:textColorHint="@color/colorDividerLine"
+                android:textColor="@color/colorSecondaryText"
+                android:inputType="textCapSentences|textMultiLine"
+                android:layout_below="@+id/noteRemindersTitle"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="25dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:maxLength="2000"
+                android:maxLines="75" />
+
+            <Button
+                android:id="@+id/buttonAlarm"
+                android:text="Tomorrow, 8:00 am"
+                android:textColor="@color/colorPrimaryText"
+                android:textAllCaps="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/noteRemindersBody"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="25dp" />
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+</RelativeLayout>
