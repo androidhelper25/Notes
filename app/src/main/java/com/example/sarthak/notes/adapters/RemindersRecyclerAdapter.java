@@ -1,7 +1,6 @@
 package com.example.sarthak.notes.adapters;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +8,6 @@ import android.view.ViewGroup;
 
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.models.NoteReminders;
-import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.utils.RecyclerViewItemClickListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
