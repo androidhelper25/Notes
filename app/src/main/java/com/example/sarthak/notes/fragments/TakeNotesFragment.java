@@ -1,7 +1,6 @@
 package com.example.sarthak.notes.fragments;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -14,7 +13,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.sarthak.notes.utils.BackButtonListener;
-import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.NotesActivity;
@@ -29,14 +27,14 @@ import com.google.firebase.database.ValueEventListener;
 
 public class TakeNotesFragment extends Fragment implements BackButtonListener {
 
-    String notesTitle = "";
-    String notesBody = "";
+    String notesTitle = " ";
+    String notesBody = " ";
 
-    int count;
+    int count, notesPosition;
+
+    Notes notesData = new Notes();
 
     private EditText mNotesTitleEt, mNotesBodyEt;
-
-    SharedPreferences.Editor editor;
 
     DatabaseReference mDatabase;
 
@@ -46,8 +44,10 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener {
 
         View view = inflater.inflate(R.layout.fragment_take_notes, container, false);
 
+        notesPosition = getArguments().getInt("position");
+        notesData = (Notes) getArguments().getSerializable("notes");
+
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
-        editor = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
 
         getNotesCount();
 
@@ -57,7 +57,18 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener {
         mNotesTitleEt.addTextChangedListener(titleWatcher);
         mNotesBodyEt.addTextChangedListener(bodyWatcher);
 
+        displayData();
+
         return view;
+    }
+
+    private void displayData() {
+
+        if (notesData != null) {
+
+            mNotesTitleEt.setText(notesData.getNotesTitle());
+            mNotesBodyEt.setText(notesData.getNotesBody());
+        }
     }
 
     @Override
@@ -70,32 +81,38 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener {
     @Override
     public void notesBackButtonPressed() {
 
-        final SharedPreferences prefs = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-
-        notesTitle = prefs.getString("title", " ");
-        notesBody = prefs.getString("body", " ");
-
-        Notes notes = new Notes(notesTitle, notesBody);
+        DatabaseReference notesDatabase;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
 
-        int notesCount = count;
+        if (notesData != null) {
 
-        mDatabase.child(firebaseAuth.getCurrentUser()).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1))
-                .setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Notes").child("Notes_0" + String.valueOf(notesPosition));
+        } else {
 
-                if (task.isSuccessful()) {
+            int notesCount = count;
 
-                    if (getActivity() != null) {
+            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1));
+        }
 
-                        Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+        if (!(notesTitle.equals(" ") && notesBody.equals(" "))) {
+
+            Notes notes = new Notes(notesTitle, notesBody);
+
+            notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+
+                    if (task.isSuccessful()) {
+
+                        if (getActivity() != null) {
+
+                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    prefs.edit().clear().apply();
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -151,8 +168,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener {
         @Override
         public void afterTextChanged(Editable editable) {
 
-            editor.putString("title", mNotesTitleEt.getText().toString());
-            editor.commit();
+            notesTitle =  mNotesTitleEt.getText().toString();
         }
     };
 
@@ -170,8 +186,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener {
         @Override
         public void afterTextChanged(Editable editable) {
 
-            editor.putString("body", mNotesBodyEt.getText().toString());
-            editor.commit();
+            notesBody = mNotesBodyEt.getText().toString();
         }
     };
 }

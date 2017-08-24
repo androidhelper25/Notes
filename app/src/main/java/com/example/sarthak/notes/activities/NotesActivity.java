@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.example.sarthak.notes.fragments.TakeChecklistRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeChecklistsFragment;
+import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.R;
@@ -15,6 +17,10 @@ import com.example.sarthak.notes.fragments.TakeNoteRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeNotesFragment;
 
 public class NotesActivity extends AppCompatActivity {
+
+    Bundle dataBundle = new Bundle();
+
+    int notesPosition;
 
     String notesType;
 
@@ -28,6 +34,7 @@ public class NotesActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         notesType = getIntent().getStringExtra("type");
+        notesPosition = getIntent().getIntExtra("position", 0);
 
         launchFragment();
     }
@@ -58,36 +65,48 @@ public class NotesActivity extends AppCompatActivity {
             case Constants.INTENT_PASS_NOTES: {
 
                 Fragment takeNotesFragment = new TakeNotesFragment();
+                dataBundle.putInt("position", notesPosition);
+                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                takeNotesFragment.setArguments(dataBundle);
 
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeNotesFragment);
                 notesFragmentTransaction.commit();
                 break;
             }
-            case Constants.INTENT_PASS_NOTES_REMINDERS: {
+            case Constants.INTENT_PASS_NOTE_REMINDERS: {
 
-                Fragment takeChecklistsFragment = new TakeNoteRemindersFragment();
+                Fragment takeNoteRemindersFragment = new TakeNoteRemindersFragment();
+                dataBundle.putInt("position", notesPosition);
+                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                takeNoteRemindersFragment.setArguments(dataBundle);
 
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
-                notesFragmentTransaction.replace(R.id.notes_frame, takeChecklistsFragment);
+                notesFragmentTransaction.replace(R.id.notes_frame, takeNoteRemindersFragment);
                 notesFragmentTransaction.commit();
                 break;
             }
             case Constants.INTENT_PASS_CHECKLISTS: {
 
-                Fragment takeNotesFragment = new TakeChecklistsFragment();
-
-                FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
-                notesFragmentTransaction.replace(R.id.notes_frame, takeNotesFragment);
-                notesFragmentTransaction.commit();
-                break;
-            }
-            case Constants.INTENT_PASS_CHECKLISTS_REMINDER: {
-
-                Fragment takeChecklistsFragment = new TakeNoteRemindersFragment();
+                Fragment takeChecklistsFragment = new TakeChecklistsFragment();
+                dataBundle.putInt("position", notesPosition);
+                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                takeChecklistsFragment.setArguments(dataBundle);
 
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeChecklistsFragment);
+                notesFragmentTransaction.commit();
+                break;
+            }
+            case Constants.INTENT_PASS_CHECKLIST_REMINDERS: {
+
+                Fragment takeChecklistRemindersFragment = new TakeChecklistRemindersFragment();
+                dataBundle.putInt("position", notesPosition);
+                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                takeChecklistRemindersFragment.setArguments(dataBundle);
+
+                FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
+                notesFragmentTransaction.replace(R.id.notes_frame, takeChecklistRemindersFragment);
                 notesFragmentTransaction.commit();
                 break;
             }
@@ -102,7 +121,7 @@ public class NotesActivity extends AppCompatActivity {
                 backButtonListener.notesBackButtonPressed();
                 break;
 
-            case Constants.INTENT_PASS_NOTES_REMINDERS:
+            case Constants.INTENT_PASS_NOTE_REMINDERS:
 
                 backButtonListener.noteRemindersBackButtonPressed();
                 break;
@@ -112,7 +131,7 @@ public class NotesActivity extends AppCompatActivity {
                 backButtonListener.checklistsBackButtonPressed();
                 break;
 
-            case Constants.INTENT_PASS_CHECKLISTS_REMINDER:
+            case Constants.INTENT_PASS_CHECKLIST_REMINDERS:
 
                 backButtonListener.checklistRemindersBackButtonPressed();
                 break;

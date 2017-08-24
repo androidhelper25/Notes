@@ -1,13 +1,47 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#fff"
     tools:context="com.example.sarthak.notes.fragments.TakeChecklistsFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/checklistList"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipToPadding="false" />
+        android:layout_height="wrap_content">
 
-</FrameLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/checklistsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:hint="Title"
+                android:textSize="24sp"
+                android:textColorHint="@color/colorDividerLine"
+                android:textColor="@color/colorPrimaryText"
+                android:inputType="textCapSentences|textMultiLine"
+                android:layout_marginTop="25dp"
+                android:layout_marginStart="25dp"
+                android:layout_marginEnd="10dp"
+                android:maxLength="100"
+                android:maxLines="4" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/checklistList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/checklistsTitle"
+                android:paddingTop="15dp"
+                android:paddingStart="25dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:clipToPadding="false" />
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

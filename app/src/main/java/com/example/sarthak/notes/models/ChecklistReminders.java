@@ -1,12 +1,13 @@
 package com.example.sarthak.notes.models;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
-public class NoteReminders implements Serializable {
+public class ChecklistReminders implements Serializable {
 
-    private String noteType;
+    private String notesType;
     private String notesTitle;
-    private String notesBody;
+    private HashMap<String, HashMap<String, String>> content = new HashMap<>();
 
     private String noteReminderYear;
     private String noteReminderMonth;
@@ -14,15 +15,15 @@ public class NoteReminders implements Serializable {
     private String noteReminderHour;
     private String noteReminderMinute;
 
-    public NoteReminders() {
+    public ChecklistReminders() {
         // Default constructor required for calls to DataSnapshot.getValue(NoteReminders.class)
     }
 
-    public NoteReminders(String notesTitle, String notesBody, String year, String month, String date, String hour, String minute) {
+    public ChecklistReminders(String notesTitle, HashMap<String, HashMap<String, String>> dataMap, String year, String month, String date, String hour, String minute) {
 
-        this.noteType = "Notes";
+        this.notesType = "Checklists";
         this.notesTitle = notesTitle;
-        this.notesBody = notesBody;
+        this.content = dataMap;
 
         this.noteReminderYear = year;
         this.noteReminderMonth = month;
@@ -31,16 +32,16 @@ public class NoteReminders implements Serializable {
         this.noteReminderMinute = minute;
     }
 
-    public String getNoteType() {
-        return "Notes";
+    public String getNotesType() {
+        return "Checklists";
     }
 
     public String getNotesTitle() {
         return notesTitle;
     }
 
-    public String getNotesBody() {
-        return notesBody;
+    public HashMap<String, HashMap<String, String>> getContent() {
+        return content;
     }
 
     public String getNoteReminderYear() {

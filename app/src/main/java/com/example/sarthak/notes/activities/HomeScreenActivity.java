@@ -101,7 +101,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
                     notesIntent.putExtra("type", Constants.INTENT_PASS_NOTES);
                 } else if (noteType.equals("Reminders")) {
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_NOTES_REMINDERS);
+                    notesIntent.putExtra("type", Constants.INTENT_PASS_NOTE_REMINDERS);
                 }
                 startActivity(notesIntent);
                 break;
@@ -113,7 +113,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
                     notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLISTS);
                 } else if (noteType.equals("Reminders")) {
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLISTS_REMINDER);
+                    notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLIST_REMINDERS);
                 }
                 startActivity(notesIntent);
                 break;

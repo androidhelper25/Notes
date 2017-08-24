@@ -11,7 +11,7 @@ class NotesViewHolder extends RecyclerView.ViewHolder{
 
     View itemView;
 
-    private TextView mNotesTitleTv, mNotesBodyTv, mNotesReminderTv;
+    private TextView mNotesTitleTv, mNotesBodyTv;
 
     public NotesViewHolder(View itemView) {
         super(itemView);

@@ -1,6 +1,7 @@
 package com.example.sarthak.notes.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -10,9 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.sarthak.notes.activities.NotesActivity;
+import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.R;
-import com.example.sarthak.notes.utils.RecyclerViewItemClickListener;
+import com.example.sarthak.notes.utils.Constants;
+import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
 import com.example.sarthak.notes.adapters.NotesRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.google.firebase.database.DataSnapshot;
@@ -23,9 +27,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class NotesFragment extends Fragment implements RecyclerViewItemClickListener {
+public class NotesFragment extends Fragment implements NotesRecyclerViewItemClickListener {
 
-    ArrayList<Notes> notesList = new ArrayList<>();
+    ArrayList<Object> notesList = new ArrayList<>();
+    ArrayList<String> typeOfNote = new ArrayList<>();
 
     private ProgressDialog progressDialog;
 
@@ -49,7 +54,7 @@ public class NotesFragment extends Fragment implements RecyclerViewItemClickList
 
         readNotesFromFirebase();
 
-        notesRecyclerAdapter = new NotesRecyclerAdapter(getActivity(), notesList);
+        notesRecyclerAdapter = new NotesRecyclerAdapter(getActivity(), notesList, typeOfNote);
         notesRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
         // set grid layout with 2 columns
@@ -64,6 +69,21 @@ public class NotesFragment extends Fragment implements RecyclerViewItemClickList
     @Override
     public void onClick(View view, int position) {
 
+        Intent notesIntent = new Intent(getActivity(), NotesActivity.class);
+        notesIntent.putExtra("position", position + 1);
+
+        if (typeOfNote.get(position).equals("Notes")) {
+
+            notesIntent.putExtra("type", Constants.INTENT_PASS_NOTES);
+            notesIntent.putExtra("notes", (Notes) notesList.get(position));
+        }
+        else if (typeOfNote.get(position).equals("Checklists")) {
+
+            notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLISTS);
+            notesIntent.putExtra("notes", (Checklists) notesList.get(position));
+        }
+
+        startActivity(notesIntent);
     }
 
     @Override
@@ -121,13 +141,21 @@ public class NotesFragment extends Fragment implements RecyclerViewItemClickList
 
                     // clear notesList to remove any redundant data
                     notesList.clear();
+                    typeOfNote.clear();
 
                     for ( DataSnapshot userDataSnapshot : dataSnapshot.getChildren() ) {
 
                         if (userDataSnapshot != null) {
                             // add values fetched from firebase database to 'Item' newsItem
-                            notesList.add(userDataSnapshot.getValue(Notes.class));
+                            if (userDataSnapshot.getValue(Notes.class).getNotesBody() != null) {
 
+                                notesList.add(userDataSnapshot.getValue(Notes.class));
+                                typeOfNote.add("Notes");
+                            } else {
+
+                                notesList.add(userDataSnapshot.getValue(Checklists.class));
+                                typeOfNote.add("Checklists");
+                            }
                             // update recycler view adapter
                             notesRecyclerAdapter.notifyDataSetChanged();
                             // dismiss progress dialog

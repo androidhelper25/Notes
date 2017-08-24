@@ -8,4 +8,9 @@
     <color name="colorSecondaryText">#757575</color>
     <color name="colorDividerLine">#BDBDBD</color>
     <color name="transparent">#fff</color>
+
+    <color name="notesColor">#91d6f2</color>
+    <color name="noteRemindersColor">#96dd93</color>
+    <color name="checklistsColor">#c0c7e7</color>
+    <color name="checklistRemindersColor">#ffcc99</color>
 </resources>

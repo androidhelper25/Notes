@@ -42,26 +42,26 @@ import java.util.Calendar;
 public class TakeNoteRemindersFragment extends Fragment implements
         View.OnClickListener, BackButtonListener, AdapterView.OnItemSelectedListener {
 
-    String notesTitle = "";
-    String notesBody = "";
-    String noteReminderYear;
-    String noteReminderMonth;
-    String noteReminderDate;
-    String noteReminderHour;
-    String noteReminderMinute;
+    String notesTitle = " ";
+    String notesBody = " ";
+    String noteReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+    String noteReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+    String noteReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
+    String noteReminderHour = String.valueOf(20);
+    String noteReminderMinute = String.valueOf(0);
 
-    int count;
+    int count, notesPosition;
 
     private static final String[] dayArray = {"Today", "Tomorrow", "Select any day..."};
     private static final String[] timeArray = {"After 1 hour", "After 6 hours", "After 12 hours", "Select any time..."};
 
+    NoteReminders noteRemindersData = new NoteReminders();
+
     private EditText mNotesTitleEt, mNotesBodyEt;
 
-    SharedPreferences.Editor editor;
+    private Button mAlarmButton;
 
     DatabaseReference mDatabase;
-
-    private Button mAlarmButton;
 
     private Calendar cal;
 
@@ -71,8 +71,10 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
         View view = inflater.inflate(R.layout.fragment_take_note_reminders, container, false);
 
+        notesPosition = getArguments().getInt("position");
+        noteRemindersData = (NoteReminders) getArguments().getSerializable("notes");
+
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
-        editor = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
 
         cal = Calendar.getInstance();
 
@@ -87,7 +89,23 @@ public class TakeNoteRemindersFragment extends Fragment implements
         mAlarmButton = (Button) view.findViewById(R.id.buttonAlarm);
         mAlarmButton.setOnClickListener(this);
 
+        displayData();
+
         return view;
+    }
+
+    private void displayData() {
+
+        if (noteRemindersData != null) {
+
+            mNotesTitleEt.setText(noteRemindersData.getNotesTitle());
+            mNotesBodyEt.setText(noteRemindersData.getNotesBody());
+            mAlarmButton.setText(noteRemindersData.getNoteReminderDate() + "/" +
+                    noteRemindersData.getNoteReminderMonth() + "/" +
+                    noteRemindersData.getNoteReminderYear() + ", " +
+                    noteRemindersData.getNoteReminderHour() + ":" +
+                    noteRemindersData.getNoteReminderMinute());
+        }
     }
 
     @Override
@@ -105,39 +123,39 @@ public class TakeNoteRemindersFragment extends Fragment implements
     @Override
     public void noteRemindersBackButtonPressed() {
 
-        final SharedPreferences prefs = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
-
-        notesTitle = prefs.getString("title", " ");
-        notesBody = prefs.getString("body", " ");
-
-        noteReminderYear = prefs.getString("year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
-        noteReminderMonth = prefs.getString("month", String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
-        noteReminderDate = prefs.getString("date", String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1));
-        noteReminderHour = prefs.getString("hour", String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)));
-        noteReminderMinute = prefs.getString("minute", String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
-
-        NoteReminders notes = new NoteReminders(notesTitle, notesBody, noteReminderYear,
-                noteReminderMonth, noteReminderDate, noteReminderHour, noteReminderMinute);
+        DatabaseReference notesDatabase;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
 
-        int notesCount = count;
+        if (noteRemindersData != null) {
 
-        mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1))
-                .setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
+            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition));
+        } else {
 
-                if (task.isSuccessful()) {
+            int notesCount = count;
 
-                    if (getActivity() != null) {
+            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1));
+        }
 
-                        Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+        if (!(notesTitle.equals(" ") && notesBody.equals(" "))) {
+
+            NoteReminders notes = new NoteReminders(notesTitle, notesBody, noteReminderYear,
+                    noteReminderMonth, noteReminderDate, noteReminderHour, noteReminderMinute);
+
+            notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+
+                    if (task.isSuccessful()) {
+
+                        if (getActivity() != null) {
+
+                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    prefs.edit().clear().apply();
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -167,7 +185,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                 alertDialogBuilder.setView(dialogView);
 
                 Spinner daySpinner = (Spinner) dialogView.findViewById(R.id.daySpinner);
-                ArrayAdapter<String> dayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, dayArray);
+                ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, dayArray);
 
                 dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 daySpinner.setSelection(2);
@@ -175,7 +193,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                 daySpinner.setOnItemSelectedListener(this);
 
                 Spinner timeSpinner = (Spinner) dialogView.findViewById(R.id.timeSpinner);
-                ArrayAdapter<String> timeAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, timeArray);
+                ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, timeArray);
 
                 timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 timeSpinner.setSelection(1);
@@ -252,8 +270,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
         @Override
         public void afterTextChanged(Editable editable) {
 
-            editor.putString("title", mNotesTitleEt.getText().toString());
-            editor.commit();
+            notesTitle = mNotesTitleEt.getText().toString();
         }
     };
 
@@ -271,8 +288,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
         @Override
         public void afterTextChanged(Editable editable) {
 
-            editor.putString("body", mNotesBodyEt.getText().toString());
-            editor.commit();
+            notesBody = mNotesBodyEt.getText().toString();
         }
     };
 
@@ -291,17 +307,17 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 0 :
 
-                        edit.putString("year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
-                        edit.putString("month", String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
-                        edit.putString("date", String.valueOf(Calendar.getInstance().get(Calendar.DATE)));
+                        noteReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+                        noteReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+                        noteReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
                         edit.apply();
                         break;
 
                     case 1 :
 
-                        edit.putString("year", String.valueOf(Calendar.getInstance().get(Calendar.YEAR)));
-                        edit.putString("month", String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
-                        edit.putString("date", String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1));
+                        noteReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+                        noteReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+                        noteReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
                         edit.apply();
                         break;
 
@@ -317,20 +333,20 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 0 :
 
-                        edit.putString("hour", String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1));
-                        edit.putString("minute", String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
+                        noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
+                        noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
                         break;
 
                     case 1 :
 
-                        edit.putString("hour", String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 6));
-                        edit.putString("minute", String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
+                        noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 6);
+                        noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
                         break;
 
                     case 2 :
 
-                        edit.putString("hour", String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 12));
-                        edit.putString("minute", String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
+                        noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 12);
+                        noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
                         break;
 
                     case 3 :

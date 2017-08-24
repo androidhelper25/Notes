@@ -7,55 +7,124 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sarthak.notes.R;
+import com.example.sarthak.notes.models.ChecklistReminders;
 import com.example.sarthak.notes.models.NoteReminders;
-import com.example.sarthak.notes.utils.RecyclerViewItemClickListener;
+import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
+import com.example.sarthak.notes.utils.RemindersRecyclerViewItemClickListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
-public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RemindersViewHolder> {
+public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    ArrayList<NoteReminders> noteRemindersList = new ArrayList<>();
+    private Context mContext;
+
+    private final int NOTES = 0;
+    private final int CHECKLISTS = 1;
+
+    ArrayList<Object> remindersList = new ArrayList<>();
+    ArrayList<String> noteType = new ArrayList<>();
 
     private LayoutInflater mInflater;
 
-    private RecyclerViewItemClickListener onRecyclerViewItemClickListener;
+    private RemindersRecyclerViewItemClickListener onRemindersRecyclerViewItemClickListener;
 
     DatabaseReference mDatabase;
 
-    public RemindersRecyclerAdapter(Context context, ArrayList<NoteReminders> noteRemindersList) {
+    public RemindersRecyclerAdapter(Context context, ArrayList<Object> remindersList, ArrayList<String> typeOfNote) {
 
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        this.noteRemindersList = noteRemindersList;
+        this.mContext = context;
+        this.remindersList = remindersList;
+        this.noteType = typeOfNote;
+
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
 
     }
 
-    public void setOnRecyclerViewItemClickListener(RecyclerViewItemClickListener onRecyclerViewItemClickListener) {
+    public void setOnRecyclerViewItemClickListener(RemindersRecyclerViewItemClickListener onRemindersRecyclerViewItemClickListener) {
 
-        this.onRecyclerViewItemClickListener = onRecyclerViewItemClickListener;
+        this.onRemindersRecyclerViewItemClickListener = onRemindersRecyclerViewItemClickListener;
     }
 
     @Override
-    public RemindersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public int getItemViewType(int position) {
 
-        View itemView = mInflater.inflate(R.layout.cardview_note_reminders, parent, false);
+        if (noteType.get(position).equals("Notes")) {
 
-        return new RemindersViewHolder(itemView);
+            return NOTES;
+        } else if (noteType.get(position).equals("Checklists")) {
+
+            return CHECKLISTS;
+        }
+
+        return -1;
     }
 
     @Override
-    public void onBindViewHolder(RemindersViewHolder holder, int position) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        NoteReminders noteRemindersItem = noteRemindersList.get(holder.getAdapterPosition());
+        RecyclerView.ViewHolder viewHolder = null;
 
-        holder.bindData(noteRemindersItem);
+        switch (viewType) {
+
+            case NOTES :
+
+                View noteRemindersView = mInflater.inflate(R.layout.cardview_note_reminders, parent, false);
+                viewHolder = new RemindersViewHolder(noteRemindersView);
+                break;
+
+            case CHECKLISTS :
+
+                View checklistRemindersView = mInflater.inflate(R.layout.cardview_checklist_reminders, parent, false);
+                viewHolder = new ChecklistRemindersViewHolder(checklistRemindersView);
+                break;
+        }
+
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+
+        switch (holder.getItemViewType()) {
+
+            case NOTES :
+
+                RemindersViewHolder remindersViewHolder = (RemindersViewHolder) holder;
+                NoteReminders noteRemindersItem = (NoteReminders) remindersList.get(holder.getAdapterPosition());
+                remindersViewHolder.bindData(noteRemindersItem);
+
+                remindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        onRemindersRecyclerViewItemClickListener.onClick(view , position);
+                    }
+                });
+                break;
+
+            case CHECKLISTS :
+
+                ChecklistRemindersViewHolder checklistRemindersViewHolder = (ChecklistRemindersViewHolder) holder;
+                ChecklistReminders checklistRemindersItem = (ChecklistReminders) remindersList.get(holder.getAdapterPosition());
+                checklistRemindersViewHolder.bindData(mContext, checklistRemindersItem);
+
+                checklistRemindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        onRemindersRecyclerViewItemClickListener.onClick(view, position);
+                    }
+                });
+                break;
+        }
     }
 
     @Override
     public int getItemCount() {
-        return noteRemindersList.size();
+        return remindersList.size();
     }
 }

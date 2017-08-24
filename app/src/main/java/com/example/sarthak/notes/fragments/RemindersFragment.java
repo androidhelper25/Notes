@@ -1,6 +1,7 @@
 package com.example.sarthak.notes.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -11,10 +12,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sarthak.notes.R;
+import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.adapters.RemindersRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
+import com.example.sarthak.notes.models.ChecklistReminders;
 import com.example.sarthak.notes.models.NoteReminders;
-import com.example.sarthak.notes.utils.RecyclerViewItemClickListener;
+import com.example.sarthak.notes.models.Notes;
+import com.example.sarthak.notes.utils.Constants;
+import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
+import com.example.sarthak.notes.utils.RemindersRecyclerViewItemClickListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,13 +29,13 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class RemindersFragment extends Fragment implements RecyclerViewItemClickListener {
+public class RemindersFragment extends Fragment implements RemindersRecyclerViewItemClickListener {
 
-    ArrayList<NoteReminders> remindersList = new ArrayList<>();
+    ArrayList<Object> remindersList = new ArrayList<>();
+    ArrayList<String> typeOfNote = new ArrayList<>();
 
     private ProgressDialog progressDialog;
 
-    private RecyclerView mRemindersList;
     private RemindersRecyclerAdapter remindersRecyclerAdapter;
 
     DatabaseReference mDatabase;
@@ -43,13 +49,13 @@ public class RemindersFragment extends Fragment implements RecyclerViewItemClick
         String currentUser = firebaseAuthorisation.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser).child("Reminders");
 
-        mRemindersList = (RecyclerView) view.findViewById(R.id.remindersList);
+        RecyclerView mRemindersList = (RecyclerView) view.findViewById(R.id.remindersList);
 
         setUpProgressDialog();
 
         readRemindersFromFirebase();
 
-        remindersRecyclerAdapter = new RemindersRecyclerAdapter(getActivity(), remindersList);
+        remindersRecyclerAdapter = new RemindersRecyclerAdapter(getActivity(), remindersList, typeOfNote);
         remindersRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
         // set grid layout with 2 columns
@@ -64,6 +70,20 @@ public class RemindersFragment extends Fragment implements RecyclerViewItemClick
     @Override
     public void onClick(View view, int position) {
 
+        Intent notesIntent = new Intent(getActivity(), NotesActivity.class);
+        notesIntent.putExtra("position", position + 1);
+
+        if (typeOfNote.get(position).equals("Notes")) {
+
+            notesIntent.putExtra("type", Constants.INTENT_PASS_NOTE_REMINDERS);
+            notesIntent.putExtra("notes", (NoteReminders) remindersList.get(position));
+        }
+        else if (typeOfNote.get(position).equals("Checklists")) {
+
+            notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLIST_REMINDERS);
+            notesIntent.putExtra("notes", (ChecklistReminders) remindersList.get(position));
+        }
+        startActivity(notesIntent);
     }
 
     @Override
@@ -121,13 +141,21 @@ public class RemindersFragment extends Fragment implements RecyclerViewItemClick
 
                     // clear notesList to remove any redundant data
                     remindersList.clear();
+                    typeOfNote.clear();
 
                     for ( DataSnapshot userDataSnapshot : dataSnapshot.getChildren() ) {
 
                         if (userDataSnapshot != null) {
                             // add values fetched from firebase database to 'Item' newsItem
-                            remindersList.add(userDataSnapshot.getValue(NoteReminders.class));
+                            if (userDataSnapshot.getValue(Notes.class).getNotesBody() != null) {
 
+                                remindersList.add(userDataSnapshot.getValue(NoteReminders.class));
+                                typeOfNote.add("Notes");
+                            } else {
+
+                                remindersList.add(userDataSnapshot.getValue(ChecklistReminders.class));
+                                typeOfNote.add("Checklists");
+                            }
                             // update recycler view adapter
                             remindersRecyclerAdapter.notifyDataSetChanged();
                             // dismiss progress dialog

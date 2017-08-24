@@ -1,6 +1,8 @@
 package com.example.sarthak.notes.models;
 
-public class Notes {
+import java.io.Serializable;
+
+public class Notes implements Serializable {
 
     private String noteType;
     private String notesTitle;
