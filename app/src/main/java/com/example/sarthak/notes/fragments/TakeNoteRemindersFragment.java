@@ -1,7 +1,9 @@
 package com.example.sarthak.notes.fragments;
 
 import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,9 +23,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.sarthak.notes.activities.NotesActivity;
@@ -50,7 +54,7 @@ import com.squareup.picasso.Picasso;
 import java.util.Calendar;
 
 public class TakeNoteRemindersFragment extends Fragment implements
-        View.OnClickListener, BackButtonListener, SetImageListener, AdapterView.OnItemSelectedListener {
+        View.OnClickListener, BackButtonListener, SetImageListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, AdapterView.OnItemSelectedListener {
 
     String notesTitle = " ";
     String notesBody = " ";
@@ -73,6 +77,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
     private ImageView mNotesImage;
 
     private Button mAlarmButton;
+
+    private DatePickerDialog datePickerDialog;
+    private TimePickerDialog timePickerDialog;
 
     DatabaseReference mDatabase;
     StorageReference mStorage;
@@ -105,6 +112,15 @@ public class TakeNoteRemindersFragment extends Fragment implements
         mAlarmButton.setOnClickListener(this);
 
         mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
+
+        datePickerDialog = new DatePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+
+        timePickerDialog = new TimePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                Calendar.getInstance().get(Calendar.MINUTE), true);
 
         displayData();
 
@@ -397,6 +413,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 2 :
 
+                        datePickerDialog.show();
                         break;
                 }
                 break;
@@ -425,6 +442,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 3 :
 
+                        timePickerDialog.show();
                         break;
                 }
                 break;
@@ -434,5 +452,21 @@ public class TakeNoteRemindersFragment extends Fragment implements
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
+    }
+
+
+    @Override
+    public void onDateSet(DatePicker datePicker, int year, int month, int date) {
+
+        noteReminderYear = String.valueOf(year);
+        noteReminderMonth = String.valueOf(month + 1);
+        noteReminderDate = String.valueOf(date);
+    }
+
+    @Override
+    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
+
+        noteReminderHour = String.valueOf(hour);
+        noteReminderMinute = String.valueOf(minute);
     }
 }

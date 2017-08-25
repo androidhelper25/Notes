@@ -1,12 +1,12 @@
 package com.example.sarthak.notes.fragments;
 
 import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,9 +23,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.sarthak.notes.R;
@@ -33,11 +35,9 @@ import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.adapters.TakeChecklistsRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.example.sarthak.notes.models.ChecklistReminders;
-import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.utils.AlarmReceiver;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.CheckListListener;
-import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -56,7 +56,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 public class TakeChecklistRemindersFragment extends Fragment implements
-        CheckListListener, BackButtonListener, SetImageListener, TextWatcher, View.OnClickListener, AdapterView.OnItemSelectedListener {
+        CheckListListener, BackButtonListener, SetImageListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, TextWatcher, View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     boolean checkboxStatus = false;
 
@@ -83,6 +83,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
     private EditText mChecklistRemindersTitleEt;
     private ImageView mNotesImage;
+
+    private DatePickerDialog datePickerDialog;
+    private TimePickerDialog timePickerDialog;
 
     private Button mAlarmButton;
 
@@ -111,6 +114,15 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         mAlarmButton.setOnClickListener(this);
 
         mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
+
+        datePickerDialog = new DatePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+
+        timePickerDialog = new TimePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                Calendar.getInstance().get(Calendar.MINUTE), true);
 
         displayData();
 
@@ -376,8 +388,6 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         Spinner spinner = (Spinner) adapterView;
 
-        SharedPreferences.Editor edit = getActivity().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).edit();
-
         switch (spinner.getId()) {
 
             case R.id.daySpinner :
@@ -389,7 +399,6 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                         checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
                         checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
                         checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
-                        edit.apply();
                         break;
 
                     case 1 :
@@ -397,11 +406,11 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                         checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
                         checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
                         checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
-                        edit.apply();
                         break;
 
                     case 2 :
 
+                        datePickerDialog.show();
                         break;
                 }
                 break;
@@ -430,6 +439,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
                     case 3 :
 
+                        timePickerDialog.show();
                         break;
                 }
                 break;
@@ -499,5 +509,20 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
             }
         });
+    }
+
+    @Override
+    public void onDateSet(DatePicker datePicker, int year, int month, int date) {
+
+        checklistReminderYear = String.valueOf(year);
+        checklistReminderMonth = String.valueOf(month + 1);
+        checklistReminderDate = String.valueOf(date);
+    }
+
+    @Override
+    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
+
+        checklistReminderHour = String.valueOf(hour);
+        checklistReminderMinute = String.valueOf(minute);
     }
 }
