@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.sarthak.notes.activities.NotesActivity">
 
     <android.support.v7.widget.Toolbar
@@ -15,5 +16,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/notes_toolbar" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabGallery"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_margin="21dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        app:srcCompat="@drawable/fab_gallery" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabCamera"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="21dp"
+        app:srcCompat="@drawable/fab_camera" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabAddCity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        app:srcCompat="@drawable/fab_add" />
 
 </RelativeLayout>

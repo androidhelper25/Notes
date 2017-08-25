@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,16 +22,19 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.models.NoteReminders;
+import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.utils.AlarmReceiver;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
+import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -36,11 +42,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
 
 public class TakeNoteRemindersFragment extends Fragment implements
-        View.OnClickListener, BackButtonListener, AdapterView.OnItemSelectedListener {
+        View.OnClickListener, BackButtonListener, SetImageListener, AdapterView.OnItemSelectedListener {
 
     String notesTitle = " ";
     String notesBody = " ";
@@ -52,16 +62,20 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
     int count, notesPosition;
 
+    private Uri notesImageUri;
+
     private static final String[] dayArray = {"Today", "Tomorrow", "Select any day..."};
     private static final String[] timeArray = {"After 1 hour", "After 6 hours", "After 12 hours", "Select any time..."};
 
     NoteReminders noteRemindersData = new NoteReminders();
 
     private EditText mNotesTitleEt, mNotesBodyEt;
+    private ImageView mNotesImage;
 
     private Button mAlarmButton;
 
     DatabaseReference mDatabase;
+    StorageReference mStorage;
 
     private Calendar cal;
 
@@ -75,6 +89,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
         noteRemindersData = (NoteReminders) getArguments().getSerializable("notes");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mStorage = FirebaseStorage.getInstance().getReference();
 
         cal = Calendar.getInstance();
 
@@ -88,6 +103,8 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
         mAlarmButton = (Button) view.findViewById(R.id.buttonAlarm);
         mAlarmButton.setOnClickListener(this);
+
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
 
         displayData();
 
@@ -105,6 +122,14 @@ public class TakeNoteRemindersFragment extends Fragment implements
                     noteRemindersData.getNoteReminderYear() + ", " +
                     noteRemindersData.getNoteReminderHour() + ":" +
                     noteRemindersData.getNoteReminderMinute());
+
+            if (noteRemindersData.getImageUri() != null) {
+
+                this.notesImageUri = Uri.parse(noteRemindersData.getImageUri());
+                Picasso.with(getActivity())
+                        .load(noteRemindersData.getImageUri())
+                        .into(mNotesImage);
+            }
         }
     }
 
@@ -113,6 +138,16 @@ public class TakeNoteRemindersFragment extends Fragment implements
         super.onAttach(context);
 
         ((NotesActivity) context).backButtonListener = this;
+        ((NotesActivity) context).setImageListener = this;
+    }
+
+    @Override
+    public void setImage(Uri uri) {
+
+        this.notesImageUri = uri;
+        Picasso.with(getActivity())
+                .load(uri)
+                .into(mNotesImage);
     }
 
     @Override
@@ -123,38 +158,77 @@ public class TakeNoteRemindersFragment extends Fragment implements
     @Override
     public void noteRemindersBackButtonPressed() {
 
-        DatabaseReference notesDatabase;
+        final DatabaseReference notesDatabase;
+        final StorageReference imageStorage;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
+        String currentUser = firebaseAuth.getCurrentUser();
 
         if (noteRemindersData != null) {
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition));
+            notesDatabase = mDatabase.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1));
+            notesDatabase = mDatabase.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(notesTitle.equals(" ") && notesBody.equals(" "))) {
+        if (!(notesTitle.equals(" ") && notesBody.equals(" ") && notesImageUri != null)) {
 
-            NoteReminders notes = new NoteReminders(notesTitle, notesBody, noteReminderYear,
-                    noteReminderMonth, noteReminderDate, noteReminderHour, noteReminderMinute);
+            if (notesImageUri != null) {
 
-            notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                    if (task.isSuccessful()) {
+                        if (task.isSuccessful()) {
 
-                        if (getActivity() != null) {
+                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                            if (Url != null) {
 
-                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                NoteReminders notes = new NoteReminders(notesTitle, notesBody, noteReminderYear,
+                                        noteReminderMonth, noteReminderDate, noteReminderHour, noteReminderMinute, Url.toString());
+
+                                notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            if (getActivity() != null) {
+
+                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
-                }
-            });
+                });
+
+            } else {
+
+                NoteReminders notes = new NoteReminders(notesTitle, notesBody, noteReminderYear,
+                        noteReminderMonth, noteReminderDate, noteReminderHour, noteReminderMinute);
+
+                notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            if (getActivity() != null) {
+
+                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 

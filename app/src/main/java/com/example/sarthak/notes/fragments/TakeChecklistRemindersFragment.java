@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -22,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -30,10 +33,12 @@ import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.adapters.TakeChecklistsRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.example.sarthak.notes.models.ChecklistReminders;
+import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.utils.AlarmReceiver;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.CheckListListener;
 import com.example.sarthak.notes.utils.Constants;
+import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -41,13 +46,17 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
 public class TakeChecklistRemindersFragment extends Fragment implements
-        CheckListListener, BackButtonListener, TextWatcher, View.OnClickListener, AdapterView.OnItemSelectedListener {
+        CheckListListener, BackButtonListener, SetImageListener, TextWatcher, View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     boolean checkboxStatus = false;
 
@@ -62,6 +71,8 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
     int count, notesPosition;
 
+    private Uri notesImageUri;
+
     private static final String[] dayArray = {"Today", "Tomorrow", "Select any day..."};
     private static final String[] timeArray = {"After 1 hour", "After 6 hours", "After 12 hours", "Select any time..."};
 
@@ -71,12 +82,14 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     ChecklistReminders checklistRemindersData = new ChecklistReminders();
 
     private EditText mChecklistRemindersTitleEt;
+    private ImageView mNotesImage;
 
     private Button mAlarmButton;
 
     private TakeChecklistsRecyclerAdapter takeChecklistsRecyclerAdapter;
 
     DatabaseReference mDatabase;
+    StorageReference mStorage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -87,6 +100,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         checklistRemindersData = (ChecklistReminders) getArguments().getSerializable("notes");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mStorage = FirebaseStorage.getInstance().getReference();
 
         getRemindersCount();
 
@@ -95,6 +109,8 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         mAlarmButton = (Button) view.findViewById(R.id.buttonAlarm);
         mAlarmButton.setOnClickListener(this);
+
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
 
         displayData();
 
@@ -110,31 +126,22 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         return view;
     }
 
-    private void displayData() {
-
-        if (checklistRemindersData != null) {
-
-            mChecklistRemindersTitleEt.setText(checklistRemindersData.getNotesTitle());
-
-            for (int i = 0 ; i < checklistRemindersData.getContent().size() ; i++) {
-
-                dataList.add(checklistRemindersData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
-                statusList.add(checklistRemindersData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
-            }
-
-            mAlarmButton.setText(checklistRemindersData.getNoteReminderDate() + "/" +
-                    checklistRemindersData.getNoteReminderMonth() + "/" +
-                    checklistRemindersData.getNoteReminderYear() + ", " +
-                    checklistRemindersData.getNoteReminderHour() + ":" +
-                    checklistRemindersData.getNoteReminderMinute());
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
 
         ((NotesActivity) context).backButtonListener = this;
+        ((NotesActivity) context).setImageListener = this;
+    }
+
+
+    @Override
+    public void setImage(Uri uri) {
+
+        this.notesImageUri = uri;
+        Picasso.with(getActivity())
+                .load(uri)
+                .into(mNotesImage);
     }
 
     @Override
@@ -207,12 +214,12 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     }
 
     @Override
-    public void checklistCheckBoxStatus(boolean b, int i) {
+    public void checklistCheckboxChecked(boolean b, int i) {
 
     }
 
     @Override
-    public void checklistReminderCheckBoxStatus(boolean status, int position) {
+    public void checklistReminderCheckboxChecked(boolean status, int position) {
 
         checkboxStatus = status;
 
@@ -224,6 +231,19 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                 statusList.set(position, "unchecked");
             }
         }
+    }
+
+    @Override
+    public void checklistDeleteButtonPressed(int position) {
+
+        dataList.remove(position);
+        statusList.remove(position);
+        takeChecklistsRecyclerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void checklistReminderDeleteButtonPressed(int position) {
+
     }
 
     @Override
@@ -260,24 +280,27 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     @Override
     public void checklistRemindersBackButtonPressed() {
 
-        DatabaseReference notesDatabase;
+        final DatabaseReference notesDatabase;
+        StorageReference imageStorage;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
+        final String currentUser = firebaseAuth.getCurrentUser();
 
         if (checklistRemindersData != null) {
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition));
-
+            notesDatabase = mDatabase.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1));
+            notesDatabase = mDatabase.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(checklistRemindersTitle.equals(" ") && dataList.isEmpty())) {
+        if (!(checklistRemindersTitle.equals(" ") && dataList.isEmpty() && notesImageUri != null)) {
 
-            HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
+            final HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
 
             for (int i = 0; i < dataList.size(); i++) {
 
@@ -294,22 +317,57 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                 }
             }
 
-            ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
-                    checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute);
+            if (notesImageUri != null) {
 
-            notesDatabase.setValue(checklistReminders).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                    if (task.isSuccessful()) {
+                        if (task.isSuccessful()) {
 
-                        if (getActivity() != null) {
+                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                            if (Url != null) {
 
-                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
+                                        checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute, Url.toString());
+
+                                notesDatabase.setValue(checklistReminders).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            if (getActivity() != null) {
+
+                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
-                }
-            });
+                });
+
+            } else {
+
+                ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
+                        checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute);
+
+                notesDatabase.setValue(checklistReminders).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            if (getActivity() != null) {
+
+                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -389,6 +447,34 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+    }
+
+    private void displayData() {
+
+        if (checklistRemindersData != null) {
+
+            mChecklistRemindersTitleEt.setText(checklistRemindersData.getNotesTitle());
+
+            for (int i = 0 ; i < checklistRemindersData.getContent().size() ; i++) {
+
+                dataList.add(checklistRemindersData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
+                statusList.add(checklistRemindersData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
+            }
+
+            mAlarmButton.setText(checklistRemindersData.getNoteReminderDate() + "/" +
+                    checklistRemindersData.getNoteReminderMonth() + "/" +
+                    checklistRemindersData.getNoteReminderYear() + ", " +
+                    checklistRemindersData.getNoteReminderHour() + ":" +
+                    checklistRemindersData.getNoteReminderMinute());
+
+            if (checklistRemindersData.getImageUri() != null) {
+
+                this.notesImageUri = Uri.parse(checklistRemindersData.getImageUri());
+                Picasso.with(getActivity())
+                        .load(checklistRemindersData.getImageUri())
+                        .into(mNotesImage);
+            }
+        }
     }
 
     /**

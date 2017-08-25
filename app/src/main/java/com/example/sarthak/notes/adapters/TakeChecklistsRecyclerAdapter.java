@@ -67,16 +67,16 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
                         if (checklistListenerContext.equals("checklists")) {
 
                             if (holder.mCheckBox.isChecked()) {
-                                checkListListener.checklistEnterKeyPressed(dataItem, "unchecked");
-                            } else {
                                 checkListListener.checklistEnterKeyPressed(dataItem, "checked");
+                            } else {
+                                checkListListener.checklistEnterKeyPressed(dataItem, "unchecked");
                             }
                         } else if (checklistListenerContext.equals("checklistReminders")) {
 
                             if (holder.mCheckBox.isChecked()) {
-                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "unchecked");
-                            } else {
                                 checkListListener.checklistReminderEnterKeyPressed(dataItem, "checked");
+                            } else {
+                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "unchecked");
                             }}
                     }
                 }
@@ -97,8 +97,17 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
                     holder.mDataEt.setTextColor(ContextCompat.getColor(mContext, R.color.colorSecondaryText));
                 }
 
-                checkListListener.checklistCheckBoxStatus(isChecked, position);
-                checkListListener.checklistReminderCheckBoxStatus(isChecked, position);
+                checkListListener.checklistCheckboxChecked(isChecked, position);
+                checkListListener.checklistReminderCheckboxChecked(isChecked, position);
+            }
+        });
+
+        holder.mDeleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                checkListListener.checklistDeleteButtonPressed(position);
+                checkListListener.checklistReminderDeleteButtonPressed(position);
             }
         });
     }

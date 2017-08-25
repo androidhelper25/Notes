@@ -7,9 +7,18 @@ public class Notes implements Serializable {
     private String noteType;
     private String notesTitle;
     private String notesBody;
+    private String imageUri;
 
     public Notes() {
         // Default constructor required for calls to DataSnapshot.getValue(Notes.class)
+    }
+
+    public Notes(String notesTitle, String notesBody, String uri) {
+
+        this.noteType = "Notes";
+        this.notesTitle = notesTitle;
+        this.notesBody = notesBody;
+        this.imageUri = uri;
     }
 
     public Notes(String notesTitle, String notesBody) {
@@ -29,5 +38,9 @@ public class Notes implements Serializable {
 
     public String getNotesBody() {
         return notesBody;
+    }
+
+    public String getImageUri() {
+        return imageUri;
     }
 }

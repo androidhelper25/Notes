@@ -19,7 +19,7 @@ public class TakeChecklistsViewHolder extends RecyclerView.ViewHolder{
 
     CheckBox mCheckBox;
     EditText mDataEt;
-    private ImageButton mDeleteButton;
+    ImageButton mDeleteButton;
 
     CheckListListener checkListListener;
 

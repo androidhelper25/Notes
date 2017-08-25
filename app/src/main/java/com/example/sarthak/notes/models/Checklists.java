@@ -8,9 +8,10 @@ public class Checklists implements Serializable {
     private String notesType;
     private String notesTitle;
     private HashMap<String, HashMap<String, String>> content = new HashMap<>();
+    private String imageUri;
 
     public Checklists() {
-
+        // Default constructor required for calls to DataSnapshot.getValue(Notes.class)
     }
 
     public Checklists(String notesTitle, HashMap<String, HashMap<String, String>> dataMap) {
@@ -18,6 +19,14 @@ public class Checklists implements Serializable {
         this.notesType = "Checklists";
         this.notesTitle = notesTitle;
         this.content = dataMap;
+    }
+
+    public Checklists(String notesTitle, HashMap<String, HashMap<String, String>> dataMap, String uri) {
+
+        this.notesType = "Checklists";
+        this.notesTitle = notesTitle;
+        this.content = dataMap;
+        this.imageUri = uri;
     }
 
     public String getNotesType() {
@@ -30,5 +39,9 @@ public class Checklists implements Serializable {
 
     public HashMap<String, HashMap<String, String>> getContent() {
         return content;
+    }
+
+    public String getImageUri() {
+        return imageUri;
     }
 }

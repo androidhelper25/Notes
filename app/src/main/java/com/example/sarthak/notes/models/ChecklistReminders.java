@@ -8,6 +8,7 @@ public class ChecklistReminders implements Serializable {
     private String notesType;
     private String notesTitle;
     private HashMap<String, HashMap<String, String>> content = new HashMap<>();
+    private String imageUri;
 
     private String noteReminderYear;
     private String noteReminderMonth;
@@ -32,6 +33,20 @@ public class ChecklistReminders implements Serializable {
         this.noteReminderMinute = minute;
     }
 
+    public ChecklistReminders(String notesTitle, HashMap<String, HashMap<String, String>> dataMap, String year, String month, String date, String hour, String minute, String uri) {
+
+        this.notesType = "Checklists";
+        this.notesTitle = notesTitle;
+        this.content = dataMap;
+        this.imageUri = uri;
+
+        this.noteReminderYear = year;
+        this.noteReminderMonth = month;
+        this.noteReminderDate = date;
+        this.noteReminderHour = hour;
+        this.noteReminderMinute = minute;
+    }
+
     public String getNotesType() {
         return "Checklists";
     }
@@ -42,6 +57,10 @@ public class ChecklistReminders implements Serializable {
 
     public HashMap<String, HashMap<String, String>> getContent() {
         return content;
+    }
+
+    public String getImageUri() {
+        return imageUri;
     }
 
     public String getNoteReminderYear() {

@@ -14,8 +14,24 @@ public class NoteReminders implements Serializable {
     private String noteReminderHour;
     private String noteReminderMinute;
 
+    private String imageUri;
+
     public NoteReminders() {
         // Default constructor required for calls to DataSnapshot.getValue(NoteReminders.class)
+    }
+
+    public NoteReminders(String notesTitle, String notesBody, String year, String month, String date, String hour, String minute, String uri) {
+
+        this.noteType = "Notes";
+        this.notesTitle = notesTitle;
+        this.notesBody = notesBody;
+        this.imageUri = uri;
+
+        this.noteReminderYear = year;
+        this.noteReminderMonth = month;
+        this.noteReminderDate = date;
+        this.noteReminderHour = hour;
+        this.noteReminderMinute = minute;
     }
 
     public NoteReminders(String notesTitle, String notesBody, String year, String month, String date, String hour, String minute) {
@@ -41,6 +57,10 @@ public class NoteReminders implements Serializable {
 
     public String getNotesBody() {
         return notesBody;
+    }
+
+    public String getImageUri() {
+        return imageUri;
     }
 
     public String getNoteReminderYear() {

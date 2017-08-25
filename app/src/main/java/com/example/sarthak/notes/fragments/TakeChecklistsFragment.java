@@ -1,6 +1,8 @@
 package com.example.sarthak.notes.fragments;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -9,11 +11,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.sarthak.notes.R;
@@ -23,6 +25,7 @@ import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.CheckListListener;
+import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -30,13 +33,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class TakeChecklistsFragment extends Fragment implements CheckListListener, BackButtonListener, TextWatcher {
+public class TakeChecklistsFragment extends Fragment implements CheckListListener, BackButtonListener, SetImageListener, TextWatcher {
 
     int count, notesPosition;
+
+    private Uri notesImageUri;
 
     String checklistsTitle = " ";
     String checklistListenerContext = "checklists";
@@ -47,10 +56,12 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     Checklists checklistsData = new Checklists();
 
     private EditText mChecklistsTitleEt;
+    private ImageView mNotesImage;
 
     private TakeChecklistsRecyclerAdapter takeChecklistsRecyclerAdapter;
 
     DatabaseReference mDatabase;
+    StorageReference mStorage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,11 +73,14 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         checklistsData = (Checklists) getArguments().getSerializable("notes");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mStorage = FirebaseStorage.getInstance().getReference();
 
         getNotesCount();
 
         mChecklistsTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
         mChecklistsTitleEt.addTextChangedListener(this);
+
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
 
         displayData();
 
@@ -93,6 +107,14 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                 dataList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
                 statusList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
             }
+
+            if (checklistsData.getImageUri() != null) {
+
+                this.notesImageUri = Uri.parse(checklistsData.getImageUri());
+                Picasso.with(getActivity())
+                        .load(checklistsData.getImageUri())
+                        .into(mNotesImage);
+            }
         }
     }
 
@@ -101,6 +123,16 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         super.onAttach(context);
 
         ((NotesActivity) context).backButtonListener = this;
+        ((NotesActivity) context).setImageListener = this;
+    }
+
+    @Override
+    public void setImage(Uri uri) {
+
+        this.notesImageUri = uri;
+        Picasso.with(getActivity())
+                .load(uri)
+                .into(mNotesImage);
     }
 
     @Override
@@ -117,7 +149,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     }
 
     @Override
-    public void checklistCheckBoxStatus(boolean status, int position) {
+    public void checklistCheckboxChecked(boolean status, int position) {
 
         if (position < statusList.size()) {
 
@@ -130,8 +162,21 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     }
 
     @Override
-    public void checklistReminderCheckBoxStatus(boolean b, int pos) {
+    public void checklistReminderCheckboxChecked(boolean b, int pos) {
 
+    }
+
+    @Override
+    public void checklistDeleteButtonPressed(int position) {
+
+    }
+
+    @Override
+    public void checklistReminderDeleteButtonPressed(int position) {
+
+        dataList.remove(position);
+        statusList.remove(position);
+        takeChecklistsRecyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -147,23 +192,27 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     @Override
     public void checklistsBackButtonPressed() {
 
-        DatabaseReference notesDatabase;
+        final DatabaseReference notesDatabase;
+        final StorageReference imageStorage;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
+        final String currentUser = firebaseAuth.getCurrentUser();
 
         if (checklistsData != null) {
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Notes").child("Notes_0" + String.valueOf(notesPosition));
+            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(firebaseAuth.getCurrentUser()).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1));
+            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(checklistsTitle.equals(" ") && dataList.isEmpty())) {
+        if (!(checklistsTitle.equals(" ") && dataList.isEmpty() && notesImageUri != null)) {
 
-            HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
+            final HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
 
             for (int i = 0; i < dataList.size(); i++) {
 
@@ -172,25 +221,57 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                 contentMap.put("status", statusList.get(i));
 
                 dataMap.put("content_0" + String.valueOf(i + 1), contentMap);
-
-                statusList.add("unchecked");
             }
 
-            Checklists checklists = new Checklists(checklistsTitle, dataMap);
+            if (notesImageUri != null) {
 
-            notesDatabase.setValue(checklists).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
-                    if (task.isSuccessful()) {
+                        if (task.isSuccessful()) {
 
-                        if (getActivity() != null) {
+                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                            if (Url != null) {
 
-                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                Checklists checklists = new Checklists(checklistsTitle, dataMap, Url.toString());
+
+                                notesDatabase.setValue(checklists).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            if (getActivity() != null) {
+
+                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                     }
-                }
-            });
+                });
+
+            } else {
+
+                Checklists checklists = new Checklists(checklistsTitle, dataMap);
+
+                notesDatabase.setValue(checklists).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            if (getActivity() != null) {
+
+                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 

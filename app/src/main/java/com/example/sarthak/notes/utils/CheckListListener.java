@@ -6,7 +6,11 @@ public interface CheckListListener {
 
     void checklistReminderEnterKeyPressed(String data, String status);
 
-    void checklistCheckBoxStatus(boolean b, int pos);
+    void checklistCheckboxChecked(boolean b, int pos);
 
-    void checklistReminderCheckBoxStatus(boolean b, int pos);
+    void checklistReminderCheckboxChecked(boolean b, int pos);
+
+    void checklistDeleteButtonPressed(int position);
+
+    void checklistReminderDeleteButtonPressed(int position);
 }

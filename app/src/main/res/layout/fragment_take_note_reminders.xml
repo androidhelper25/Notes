@@ -13,6 +13,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <ImageView
+                android:id="@+id/notesImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
             <EditText
                 android:id="@+id/noteRemindersTitle"
                 android:layout_width="match_parent"
@@ -23,6 +28,7 @@
                 android:textColorHint="@color/colorDividerLine"
                 android:textColor="@color/colorPrimaryText"
                 android:inputType="textCapSentences|textMultiLine"
+                android:layout_below="@+id/notesImage"
                 android:layout_marginTop="25dp"
                 android:layout_marginStart="25dp"
                 android:layout_marginEnd="10dp"

@@ -1,30 +1,43 @@
 package com.example.sarthak.notes.activities;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.example.sarthak.notes.fragments.TakeChecklistRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeChecklistsFragment;
-import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.fragments.TakeNoteRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeNotesFragment;
+import com.example.sarthak.notes.utils.SetImageListener;
 
-public class NotesActivity extends AppCompatActivity {
+import java.io.IOException;
+
+public class NotesActivity extends AppCompatActivity implements View.OnClickListener {
 
     Bundle dataBundle = new Bundle();
+
+    boolean isFABOpen = false;
 
     int notesPosition;
 
     String notesType;
 
+    private FloatingActionButton fabAddCity,fabCamera,fabGallery;
+
     public BackButtonListener backButtonListener;
+    public SetImageListener setImageListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +49,32 @@ public class NotesActivity extends AppCompatActivity {
         notesType = getIntent().getStringExtra("type");
         notesPosition = getIntent().getIntExtra("position", 0);
 
+        fabAddCity = (FloatingActionButton) findViewById(R.id.fabAddCity);
+        fabCamera = (FloatingActionButton) findViewById(R.id.fabCamera);
+        fabGallery = (FloatingActionButton) findViewById(R.id.fabGallery);
+
         launchFragment();
+
+        //------------------------------------------------------------------
+        // onClick listeners for Floating Buttons
+        //------------------------------------------------------------------
+        fabAddCity.setOnClickListener(this);
+        fabCamera.setOnClickListener(this);
+        fabGallery.setOnClickListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if(!isFABOpen){
+            super.onBackPressed();
 
-        configureBackButton();
+            configureBackButton();
+        }
+
+        // call closeFABMenu() to hide floating action buttons, if visible.
+        else{
+            closeFABMenu();
+        }
     }
 
     @Override
@@ -53,10 +84,105 @@ public class NotesActivity extends AppCompatActivity {
 
             case android.R.id.home :
 
-                onBackPressed();
+                super.onBackPressed();
+                configureBackButton();
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        switch (view.getId()) {
+
+            case R.id.fabAddCity :
+                if (!isFABOpen) {
+                    showFABMenu();
+                } else {
+                    closeFABMenu();
+                }
+                break;
+
+            case R.id.fabCamera :
+
+                // launch camera intent
+                Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                if (takePicture.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePicture, Constants.CAMERA_REQUEST);
+                }
+                break;
+
+            case R.id.fabGallery :
+
+                // launch implicit intent to access gallery
+                // 'image/*' specifies images of all types
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), Constants.PICK_IMAGE);
+                break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+
+            if (requestCode == Constants.PICK_IMAGE && null != data) {
+
+                setImageInFragment(data.getData());
+
+            } else if (requestCode == Constants.CAMERA_REQUEST) {
+
+                setImageInFragment(data.getData());
+            }
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // floating action button animations
+    //-------------------------------------------------------------------------
+    private void showFABMenu(){
+        isFABOpen=true;
+        fabCamera.animate().translationY(-getResources().getDimension(R.dimen.standard_55));
+        fabGallery.animate().translationY(-getResources().getDimension(R.dimen.standard_105));
+    }
+
+    private void closeFABMenu(){
+        isFABOpen=false;
+        fabCamera.animate().translationY(0);
+        fabGallery.animate().translationY(0);
+    }
+
+    private void setImageInFragment(Uri uri) {
+
+        switch (notesType) {
+
+            case Constants.INTENT_PASS_NOTES :
+
+                setImageListener.setImage(uri);
+                break;
+
+            case Constants.INTENT_PASS_NOTE_REMINDERS :
+
+                setImageListener.setImage(uri);
+                break;
+
+            case Constants.INTENT_PASS_CHECKLISTS :
+
+                setImageListener.setImage(uri);
+                break;
+
+            case Constants.INTENT_PASS_CHECKLIST_REMINDERS :
+
+                setImageListener.setImage(uri);
+                break;
+        }
     }
 
     private void launchFragment() {
