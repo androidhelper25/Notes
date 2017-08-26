@@ -99,41 +99,34 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         View view = inflater.inflate(R.layout.fragment_take_checklist_reminders, container, false);
 
+        // Set title bar
+        ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.reminders);
+
         notesPosition = getArguments().getInt("position");
         checklistRemindersData = (ChecklistReminders) getArguments().getSerializable("notes");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
         mStorage = FirebaseStorage.getInstance().getReference();
 
+        setUpView(view);
+        setUpDateTimePicker();
+
         getRemindersCount();
 
-        mChecklistRemindersTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
-        mChecklistRemindersTitleEt.addTextChangedListener(this);
-
-        mAlarmButton = (Button) view.findViewById(R.id.buttonAlarm);
-        mAlarmButton.setOnClickListener(this);
-
-        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
-
-        datePickerDialog = new DatePickerDialog(getActivity(), this,
-                Calendar.getInstance().get(Calendar.YEAR),
-                Calendar.getInstance().get(Calendar.MONTH),
-                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-
-        timePickerDialog = new TimePickerDialog(getActivity(), this,
-                Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-                Calendar.getInstance().get(Calendar.MINUTE), true);
-
-        displayData();
-
         RecyclerView mChecklistRemindersList = (RecyclerView) view.findViewById(R.id.checklistList);
-
         takeChecklistsRecyclerAdapter = new TakeChecklistsRecyclerAdapter(getActivity(), dataList, statusList, this, checklistListenerContext);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mChecklistRemindersList.setLayoutManager(mLayoutManager);
         mChecklistRemindersList.setItemAnimator(new DefaultItemAnimator());
         mChecklistRemindersList.setAdapter(takeChecklistsRecyclerAdapter);
+
+        displayData();
+
+        // editText textChanged listener
+        mChecklistRemindersTitleEt.addTextChangedListener(this);
+        // button onClick listener
+        mAlarmButton.setOnClickListener(this);
 
         return view;
     }
@@ -144,16 +137,6 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         ((NotesActivity) context).backButtonListener = this;
         ((NotesActivity) context).setImageListener = this;
-    }
-
-
-    @Override
-    public void setImage(Uri uri) {
-
-        this.notesImageUri = uri;
-        Picasso.with(getActivity())
-                .load(uri)
-                .into(mNotesImage);
     }
 
     @Override
@@ -212,6 +195,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         }
     }
 
+    //----------------------------------------------------------------------------------
+    // checkList component's click listeners
+    //----------------------------------------------------------------------------------
     @Override
     public void checklistEnterKeyPressed(String string, String s) {
 
@@ -258,6 +244,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
     }
 
+    //----------------------------------------------------------------------------------
+    // editText textChanged listener
+    //----------------------------------------------------------------------------------
     @Override
     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -274,23 +263,103 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         checklistRemindersTitle = mChecklistRemindersTitleEt.getText().toString();
     }
 
+    //----------------------------------------------------------------------------------
+    // spinner itemSelected listener
+    //----------------------------------------------------------------------------------
     @Override
-    public void notesBackButtonPressed() {
+    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+
+        Spinner spinner = (Spinner) adapterView;
+
+        switch (spinner.getId()) {
+
+            case R.id.daySpinner :
+
+                switch (position) {
+
+                    case 0 :
+
+                        checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+                        checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+                        checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
+                        break;
+
+                    case 1 :
+
+                        checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+                        checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+                        checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
+                        break;
+
+                    case 2 :
+
+                        datePickerDialog.show();
+                        break;
+                }
+                break;
+
+            case R.id.timeSpinner :
+
+                switch (position) {
+
+                    case 0 :
+
+                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
+                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
+                        break;
+
+                    case 1 :
+
+                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 6);
+                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
+                        break;
+
+                    case 2 :
+
+                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 12);
+                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
+                        break;
+
+                    case 3 :
+
+                        timePickerDialog.show();
+                        break;
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
 
     @Override
-    public void noteRemindersBackButtonPressed() {
+    public void onDateSet(DatePicker datePicker, int year, int month, int date) {
 
+        checklistReminderYear = String.valueOf(year);
+        checklistReminderMonth = String.valueOf(month + 1);
+        checklistReminderDate = String.valueOf(date);
     }
 
     @Override
-    public void checklistsBackButtonPressed() {
+    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
 
+        checklistReminderHour = String.valueOf(hour);
+        checklistReminderMinute = String.valueOf(minute);
     }
 
     @Override
-    public void checklistRemindersBackButtonPressed() {
+    public void setImage(Uri uri) {
+
+        this.notesImageUri = uri;
+        Picasso.with(getActivity())
+                .load(uri)
+                .into(mNotesImage);
+    }
+
+    @Override
+    public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
         StorageReference imageStorage;
@@ -383,72 +452,23 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         }
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+    private void setUpView(View view) {
 
-        Spinner spinner = (Spinner) adapterView;
-
-        switch (spinner.getId()) {
-
-            case R.id.daySpinner :
-
-                switch (position) {
-
-                    case 0 :
-
-                        checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
-                        checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-                        checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
-                        break;
-
-                    case 1 :
-
-                        checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
-                        checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-                        checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
-                        break;
-
-                    case 2 :
-
-                        datePickerDialog.show();
-                        break;
-                }
-                break;
-
-            case R.id.timeSpinner :
-
-                switch (position) {
-
-                    case 0 :
-
-                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
-                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
-                        break;
-
-                    case 1 :
-
-                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 6);
-                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
-                        break;
-
-                    case 2 :
-
-                        checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 12);
-                        checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
-                        break;
-
-                    case 3 :
-
-                        timePickerDialog.show();
-                        break;
-                }
-                break;
-        }
+        mChecklistRemindersTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
+        mAlarmButton = (Button) view.findViewById(R.id.buttonAlarm);
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> adapterView) {
+    private void setUpDateTimePicker() {
 
+        datePickerDialog = new DatePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+
+        timePickerDialog = new TimePickerDialog(getActivity(), this,
+                Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                Calendar.getInstance().get(Calendar.MINUTE), true);
     }
 
     private void setAlarm(Calendar cal) {
@@ -509,20 +529,5 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
             }
         });
-    }
-
-    @Override
-    public void onDateSet(DatePicker datePicker, int year, int month, int date) {
-
-        checklistReminderYear = String.valueOf(year);
-        checklistReminderMonth = String.valueOf(month + 1);
-        checklistReminderDate = String.valueOf(date);
-    }
-
-    @Override
-    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
-
-        checklistReminderHour = String.valueOf(hour);
-        checklistReminderMinute = String.valueOf(minute);
     }
 }

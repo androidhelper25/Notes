@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.models.ChecklistReminders;
 import com.example.sarthak.notes.models.NoteReminders;
-import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
 import com.example.sarthak.notes.utils.RemindersRecyclerViewItemClickListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -87,7 +86,7 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
 
         switch (holder.getItemViewType()) {
 
@@ -101,7 +100,7 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                     @Override
                     public void onClick(View view) {
 
-                        onRemindersRecyclerViewItemClickListener.onClick(view , position);
+                        onRemindersRecyclerViewItemClickListener.onClick(view , holder.getAdapterPosition());
                     }
                 });
                 break;
@@ -116,7 +115,7 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                     @Override
                     public void onClick(View view) {
 
-                        onRemindersRecyclerViewItemClickListener.onClick(view, position);
+                        onRemindersRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
                     }
                 });
                 break;

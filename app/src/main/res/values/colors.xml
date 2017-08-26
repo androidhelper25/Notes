@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#FFC107</color>
-    <color name="colorPrimaryDark">#FFA000</color>
-    <color name="colorPrimaryLight">#FFECB3</color>
-    <color name="colorAccent">#FFEB3B</color>
+    <color name="colorPrimary">#673AB7</color>
+    <color name="colorPrimaryDark">#512DA8</color>
+    <color name="colorPrimaryLight">#D1C4E9</color>
+    <color name="colorAccent">#7C4DFF</color>
     <color name="colorPrimaryText">#212121</color>
     <color name="colorSecondaryText">#757575</color>
     <color name="colorDividerLine">#BDBDBD</color>
     <color name="transparent">#fff</color>
 
-    <color name="notesColor">#91d6f2</color>
-    <color name="noteRemindersColor">#96dd93</color>
+    <color name="notesColor">#b3e5fc</color>
+    <color name="noteRemindersColor">#e1bee7</color>
     <color name="checklistsColor">#c0c7e7</color>
-    <color name="checklistRemindersColor">#ffcc99</color>
+    <color name="checklistRemindersColor">#d1cde9</color>
 </resources>

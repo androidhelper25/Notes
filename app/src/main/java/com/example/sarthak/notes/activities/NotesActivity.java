@@ -1,8 +1,6 @@
 package com.example.sarthak.notes.activities;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -21,8 +19,6 @@ import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.fragments.TakeNoteRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeNotesFragment;
 import com.example.sarthak.notes.utils.SetImageListener;
-
-import java.io.IOException;
 
 public class NotesActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -43,21 +39,19 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.notes_toolbar);
-        setSupportActionBar(toolbar);
+
+        setUpToolbar();
 
         notesType = getIntent().getStringExtra("type");
         notesPosition = getIntent().getIntExtra("position", 0);
 
-        fabAddCity = (FloatingActionButton) findViewById(R.id.fabAddCity);
-        fabCamera = (FloatingActionButton) findViewById(R.id.fabCamera);
-        fabGallery = (FloatingActionButton) findViewById(R.id.fabGallery);
+        setUpView();
 
         launchFragment();
 
-        //------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
         // onClick listeners for Floating Buttons
-        //------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
         fabAddCity.setOnClickListener(this);
         fabCamera.setOnClickListener(this);
         fabGallery.setOnClickListener(this);
@@ -66,9 +60,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onBackPressed() {
         if(!isFABOpen){
-            super.onBackPressed();
 
-            configureBackButton();
+            super.onBackPressed();
+            backButtonListener.backButtonPressed();
         }
 
         // call closeFABMenu() to hide floating action buttons, if visible.
@@ -85,7 +79,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
             case android.R.id.home :
 
                 super.onBackPressed();
-                configureBackButton();
+                backButtonListener.backButtonPressed();
                 break;
         }
         return true;
@@ -97,6 +91,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         switch (view.getId()) {
 
             case R.id.fabAddCity :
+
                 if (!isFABOpen) {
                     showFABMenu();
                 } else {
@@ -135,11 +130,11 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
 
             if (requestCode == Constants.PICK_IMAGE && null != data) {
 
-                setImageInFragment(data.getData());
+                setImageListener.setImage(data.getData());
 
             } else if (requestCode == Constants.CAMERA_REQUEST) {
 
-                setImageInFragment(data.getData());
+                setImageListener.setImage(data.getData());
             }
         }
     }
@@ -159,30 +154,21 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         fabGallery.animate().translationY(0);
     }
 
-    private void setImageInFragment(Uri uri) {
+    private void setUpToolbar() {
 
-        switch (notesType) {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.notes_toolbar);
+        setSupportActionBar(toolbar);
 
-            case Constants.INTENT_PASS_NOTES :
-
-                setImageListener.setImage(uri);
-                break;
-
-            case Constants.INTENT_PASS_NOTE_REMINDERS :
-
-                setImageListener.setImage(uri);
-                break;
-
-            case Constants.INTENT_PASS_CHECKLISTS :
-
-                setImageListener.setImage(uri);
-                break;
-
-            case Constants.INTENT_PASS_CHECKLIST_REMINDERS :
-
-                setImageListener.setImage(uri);
-                break;
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+    }
+
+    private void setUpView() {
+
+        fabAddCity = (FloatingActionButton) findViewById(R.id.fabAddCity);
+        fabCamera = (FloatingActionButton) findViewById(R.id.fabCamera);
+        fabGallery = (FloatingActionButton) findViewById(R.id.fabGallery);
     }
 
     private void launchFragment() {
@@ -236,31 +222,6 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
                 notesFragmentTransaction.commit();
                 break;
             }
-        }
-    }
-
-    private void configureBackButton() {
-
-        switch (notesType) {
-            case Constants.INTENT_PASS_NOTES:
-
-                backButtonListener.notesBackButtonPressed();
-                break;
-
-            case Constants.INTENT_PASS_NOTE_REMINDERS:
-
-                backButtonListener.noteRemindersBackButtonPressed();
-                break;
-
-            case Constants.INTENT_PASS_CHECKLISTS:
-
-                backButtonListener.checklistsBackButtonPressed();
-                break;
-
-            case Constants.INTENT_PASS_CHECKLIST_REMINDERS:
-
-                backButtonListener.checklistRemindersBackButtonPressed();
-                break;
         }
     }
 }

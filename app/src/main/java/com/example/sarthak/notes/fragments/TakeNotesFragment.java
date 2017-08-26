@@ -1,14 +1,12 @@
 package com.example.sarthak.notes.fragments;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,10 +50,12 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
     StorageReference mStorage;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_take_notes, container, false);
+
+        // set action bar title
+        ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.notes);
 
         notesPosition = getArguments().getInt("position");
         notesData = (Notes) getArguments().getSerializable("notes");
@@ -63,36 +63,19 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
         mStorage = FirebaseStorage.getInstance().getReference();
 
+        setUpView(view);
+
         getNotesCount();
-
-        mNotesTitleEt = (EditText) view.findViewById(R.id.notesTitle);
-        mNotesBodyEt = (EditText) view.findViewById(R.id.notesBody);
-
-        mNotesTitleEt.addTextChangedListener(titleWatcher);
-        mNotesBodyEt.addTextChangedListener(bodyWatcher);
-
-        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
 
         displayData();
 
+        //------------------------------------------------------------------------------------
+        // textChangedListeners for edit texts
+        //------------------------------------------------------------------------------------
+        mNotesTitleEt.addTextChangedListener(titleWatcher);
+        mNotesBodyEt.addTextChangedListener(bodyWatcher);
+
         return view;
-    }
-
-    private void displayData() {
-
-        if (notesData != null) {
-
-            mNotesTitleEt.setText(notesData.getNotesTitle());
-            mNotesBodyEt.setText(notesData.getNotesBody());
-
-            if (notesData.getImageUri() != null) {
-
-                this.notesImageUri = Uri.parse(notesData.getImageUri());
-                Picasso.with(getActivity())
-                        .load(notesData.getImageUri())
-                        .into(mNotesImage);
-            }
-        }
     }
 
     @Override
@@ -102,6 +85,45 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         ((NotesActivity) context).backButtonListener = this;
         ((NotesActivity) context).setImageListener = this;
     }
+
+    //----------------------------------------------------------------------------------
+    // editText textChanged listener
+    //----------------------------------------------------------------------------------
+    TextWatcher titleWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+            notesTitle =  mNotesTitleEt.getText().toString();
+        }
+    };
+
+    TextWatcher bodyWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+            notesBody = mNotesBodyEt.getText().toString();
+        }
+    };
 
     @Override
     public void setImage(Uri uri) {
@@ -113,7 +135,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
     }
 
     @Override
-    public void notesBackButtonPressed() {
+    public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
         final StorageReference imageStorage;
@@ -187,19 +209,28 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         }
     }
 
-    @Override
-    public void noteRemindersBackButtonPressed() {
+    private void setUpView(View view) {
 
+        mNotesTitleEt = (EditText) view.findViewById(R.id.notesTitle);
+        mNotesBodyEt = (EditText) view.findViewById(R.id.notesBody);
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
     }
 
-    @Override
-    public void checklistsBackButtonPressed() {
+    private void displayData() {
 
-    }
+        if (notesData != null) {
 
-    @Override
-    public void checklistRemindersBackButtonPressed() {
+            mNotesTitleEt.setText(notesData.getNotesTitle());
+            mNotesBodyEt.setText(notesData.getNotesBody());
 
+            if (notesData.getImageUri() != null) {
+
+                this.notesImageUri = Uri.parse(notesData.getImageUri());
+                Picasso.with(getActivity())
+                        .load(notesData.getImageUri())
+                        .into(mNotesImage);
+            }
+        }
     }
 
     /**
@@ -225,40 +256,4 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
             }
         });
     }
-
-    TextWatcher titleWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) {
-
-            notesTitle =  mNotesTitleEt.getText().toString();
-        }
-    };
-
-    TextWatcher bodyWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) {
-
-            notesBody = mNotesBodyEt.getText().toString();
-        }
-    };
 }

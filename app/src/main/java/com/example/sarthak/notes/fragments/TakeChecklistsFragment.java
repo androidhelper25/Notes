@@ -68,23 +68,20 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
         View view = inflater.inflate(R.layout.fragment_take_checklists, container, false);
 
+        // Set title bar
+        ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.notes);
+
         notesPosition = getArguments().getInt("position");
         checklistsData = (Checklists) getArguments().getSerializable("notes");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
         mStorage = FirebaseStorage.getInstance().getReference();
 
+        setUpView(view);
+
         getNotesCount();
 
-        mChecklistsTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
-        mChecklistsTitleEt.addTextChangedListener(this);
-
-        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
-
-        displayData();
-
         RecyclerView mChecklistList = (RecyclerView) view.findViewById(R.id.checklistList);
-
         takeChecklistsRecyclerAdapter = new TakeChecklistsRecyclerAdapter(getActivity(), dataList, statusList, this, checklistListenerContext);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
@@ -92,29 +89,12 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         mChecklistList.setItemAnimator(new DefaultItemAnimator());
         mChecklistList.setAdapter(takeChecklistsRecyclerAdapter);
 
+        displayData();
+
+        // editText textChanged listener
+        mChecklistsTitleEt.addTextChangedListener(this);
+
         return view;
-    }
-
-    private void displayData() {
-
-        if (checklistsData != null) {
-
-            mChecklistsTitleEt.setText(checklistsData.getNotesTitle());
-
-            for (int i = 0 ; i < checklistsData.getContent().size() ; i++) {
-
-                dataList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
-                statusList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
-            }
-
-            if (checklistsData.getImageUri() != null) {
-
-                this.notesImageUri = Uri.parse(checklistsData.getImageUri());
-                Picasso.with(getActivity())
-                        .load(checklistsData.getImageUri())
-                        .into(mNotesImage);
-            }
-        }
     }
 
     @Override
@@ -125,15 +105,9 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         ((NotesActivity) context).setImageListener = this;
     }
 
-    @Override
-    public void setImage(Uri uri) {
-
-        this.notesImageUri = uri;
-        Picasso.with(getActivity())
-                .load(uri)
-                .into(mNotesImage);
-    }
-
+    //----------------------------------------------------------------------------------
+    // checkList component's click listeners
+    //----------------------------------------------------------------------------------
     @Override
     public void checklistEnterKeyPressed(String data, String status) {
 
@@ -178,18 +152,36 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         takeChecklistsRecyclerAdapter.notifyDataSetChanged();
     }
 
+    //----------------------------------------------------------------------------------
+    // editText textChanged listener
+    //----------------------------------------------------------------------------------
     @Override
-    public void notesBackButtonPressed() {
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
     }
 
     @Override
-    public void noteRemindersBackButtonPressed() {
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
     }
 
     @Override
-    public void checklistsBackButtonPressed() {
+    public void afterTextChanged(Editable editable) {
+
+        checklistsTitle = mChecklistsTitleEt.getText().toString();
+    }
+
+    @Override
+    public void setImage(Uri uri) {
+
+        this.notesImageUri = uri;
+        Picasso.with(getActivity())
+                .load(uri)
+                .into(mNotesImage);
+    }
+
+    @Override
+    public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
         final StorageReference imageStorage;
@@ -274,25 +266,32 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         }
     }
 
-    @Override
-    public void checklistRemindersBackButtonPressed() {
+    private void setUpView(View view) {
 
+        mChecklistsTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
+        mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
     }
 
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    private void displayData() {
 
-    }
+        if (checklistsData != null) {
 
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            mChecklistsTitleEt.setText(checklistsData.getNotesTitle());
 
-    }
+            for (int i = 0 ; i < checklistsData.getContent().size() ; i++) {
 
-    @Override
-    public void afterTextChanged(Editable editable) {
+                dataList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
+                statusList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
+            }
 
-        checklistsTitle = mChecklistsTitleEt.getText().toString();
+            if (checklistsData.getImageUri() != null) {
+
+                this.notesImageUri = Uri.parse(checklistsData.getImageUri());
+                Picasso.with(getActivity())
+                        .load(checklistsData.getImageUri())
+                        .into(mNotesImage);
+            }
+        }
     }
 
     /**

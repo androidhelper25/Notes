@@ -16,13 +16,12 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.example.sarthak.notes.fragments.RemindersFragment;
 import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.models.User;
 import com.example.sarthak.notes.fragments.NotesFragment;
 import com.example.sarthak.notes.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,8 +43,6 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     ImageButton buttonChecklist, buttonImage;
     TextView takeNote;
 
-    FirebaseAuth mAuth;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,16 +50,10 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        takeNote = (TextView) findViewById(R.id.textViewNotes);
-        buttonChecklist = (ImageButton) findViewById(R.id.button_checkList);
-        buttonImage = (ImageButton) findViewById(R.id.buttonMessage);
+        // initialise all view components
+        setUpView();
 
-        takeNote.setOnClickListener(this);
-        buttonChecklist.setOnClickListener(this);
-        buttonImage.setOnClickListener(this);
-
-        mAuth = FirebaseAuth.getInstance();
-
+        // launch default fragment as 'Notes' category
         launchDefaultFragment();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -74,11 +65,20 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        setUpCredentials();
+        // update navigation view with Google account details
+        setUpNavigationView();
+
+        //------------------------------------------------------------------------------------
+        // on click listeners
+        //------------------------------------------------------------------------------------
+        takeNote.setOnClickListener(this);
+        buttonChecklist.setOnClickListener(this);
+        buttonImage.setOnClickListener(this);
     }
 
     @Override
     public void onBackPressed() {
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -123,7 +123,6 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
         switch (item.getItemId()) {
 
             case R.id.nav_notes :
@@ -141,6 +140,13 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void setUpView() {
+
+        takeNote = (TextView) findViewById(R.id.textViewNotes);
+        buttonChecklist = (ImageButton) findViewById(R.id.button_checkList);
+        buttonImage = (ImageButton) findViewById(R.id.buttonMessage);
     }
 
     public void launchDefaultFragment() {
@@ -161,15 +167,18 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         notesFragmentTransaction.commit();
     }
 
-    private void setUpCredentials() {
+    private void setUpNavigationView() {
 
         View header = navigationView.getHeaderView(0);
+
+        FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(HomeScreenActivity.this);
+        String currentUser = firebaseAuth.getCurrentUser();
 
         profileImage = (CircleImageView) header.findViewById(R.id.nav_profile_image);
         profileName = (TextView) header.findViewById(R.id.nav_profile_name);
         profileEmail = (TextView) header.findViewById(R.id.nav_profile_email);
 
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(getCurrentUser());
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser);
 
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
@@ -187,16 +196,5 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
 
             }
         });
-    }
-
-    public String getCurrentUser() {
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser != null) {
-            return currentUser.getUid();
-        } else {
-            return null;
-        }
     }
 }

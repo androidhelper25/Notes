@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sarthak.notes.R;
+import com.example.sarthak.notes.activities.HomeScreenActivity;
 import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.adapters.RemindersRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
@@ -45,16 +46,16 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_reminders, container, false);
 
-        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
-        String currentUser = firebaseAuthorisation.getCurrentUser();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser).child("Reminders");
+        // Set title bar
+        ((HomeScreenActivity) getActivity()).getSupportActionBar().setTitle(R.string.reminders);
 
-        RecyclerView mRemindersList = (RecyclerView) view.findViewById(R.id.remindersList);
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
 
         setUpProgressDialog();
 
         readRemindersFromFirebase();
 
+        RecyclerView mRemindersList = (RecyclerView) view.findViewById(R.id.remindersList);
         remindersRecyclerAdapter = new RemindersRecyclerAdapter(getActivity(), remindersList, typeOfNote);
         remindersRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
@@ -133,9 +134,15 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
      */
     public void readData() {
 
-        if (mDatabase != null) {
+        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
+        String currentUser = firebaseAuthorisation.getCurrentUser();
 
-            mDatabase.addValueEventListener(new ValueEventListener() {
+        DatabaseReference notesDatabase;
+        notesDatabase = mDatabase.child(currentUser).child("Reminders");
+
+        if (notesDatabase != null) {
+
+            notesDatabase.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 

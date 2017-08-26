@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.sarthak.notes.activities.HomeScreenActivity;
 import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.models.Notes;
@@ -34,7 +35,6 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
 
     private ProgressDialog progressDialog;
 
-    private RecyclerView mNotesList;
     private NotesRecyclerAdapter notesRecyclerAdapter;
 
     DatabaseReference mDatabase;
@@ -44,16 +44,16 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
 
         View view = inflater.inflate(R.layout.fragment_notes, container, false);
 
-        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
-        String currentUser = firebaseAuthorisation.getCurrentUser();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser).child("Notes");
+        // Set title bar
+        ((HomeScreenActivity) getActivity()).getSupportActionBar().setTitle(R.string.notes);
 
-        mNotesList = (RecyclerView) view.findViewById(R.id.notesList);
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
 
         setUpProgressDialog();
 
         readNotesFromFirebase();
 
+        RecyclerView mNotesList = (RecyclerView) view.findViewById(R.id.notesList);
         notesRecyclerAdapter = new NotesRecyclerAdapter(getActivity(), notesList, typeOfNote);
         notesRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
@@ -66,6 +66,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
         return view;
     }
 
+    //recycler view on click
     @Override
     public void onClick(View view, int position) {
 
@@ -133,9 +134,15 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
      */
     public void readData() {
 
-        if (mDatabase != null) {
+        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
+        String currentUser = firebaseAuthorisation.getCurrentUser();
 
-            mDatabase.addValueEventListener(new ValueEventListener() {
+        DatabaseReference notesDatabase;
+        notesDatabase = mDatabase.child(currentUser).child("Notes");
+
+        if (notesDatabase != null) {
+
+            notesDatabase.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
 
