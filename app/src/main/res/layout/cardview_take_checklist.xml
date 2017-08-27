@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center_vertical"
     android:padding="7dp">
 
     <CheckBox
@@ -14,18 +16,23 @@
 
     <EditText
         android:id="@+id/checklist_data"
-        android:layout_width="250dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:background="#fff"
         android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/checklist_checkbox" />
+        android:layout_toEndOf="@+id/checklist_checkbox"
+        android:layout_toStartOf="@+id/checklist_delete"/>
 
     <ImageButton
         android:id="@+id/checklist_delete"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/close_button"
+        android:scaleType="fitXY"
+        android:background="@null"
         android:layout_alignParentEnd="true"/>
 
 </RelativeLayout>

@@ -38,7 +38,11 @@ public class ChecklistRemindersViewHolder extends RecyclerView.ViewHolder {
         mChecklistList.setItemAnimator(new DefaultItemAnimator());
         mChecklistList.setAdapter(viewChecklistsRecyclerAdapter);
 
-        mTitleTv.setText(checklistReminders.getNotesTitle());
+        if (checklistReminders.getNotesTitle().equals("")) {
+            mTitleTv.setHeight(0);
+        } else {
+            mTitleTv.setText(checklistReminders.getNotesTitle());
+        }
         mChecklistReminderTv.setText(checklistReminders.getNoteReminderDate() + "/" +
                 checklistReminders.getNoteReminderMonth() + "/" +
                 checklistReminders.getNoteReminderYear() + ", " +

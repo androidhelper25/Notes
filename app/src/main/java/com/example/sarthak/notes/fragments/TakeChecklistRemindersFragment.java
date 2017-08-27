@@ -54,6 +54,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TakeChecklistRemindersFragment extends Fragment implements
         CheckListListener, BackButtonListener, SetImageListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, TextWatcher, View.OnClickListener, AdapterView.OnItemSelectedListener {
@@ -362,7 +363,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
-        StorageReference imageStorage;
+        final StorageReference imageStorage;
 
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
         final String currentUser = firebaseAuth.getCurrentUser();
@@ -379,7 +380,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
             imageStorage = mStorage.child(currentUser).child("Reminders").child("Reminders_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(checklistRemindersTitle.equals(" ") && dataList.isEmpty() && notesImageUri != null)) {
+        if (!(checklistRemindersTitle.equals(" ") && dataList.isEmpty())) {
 
             final HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
 
@@ -398,33 +399,63 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                 }
             }
 
+            ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
+                    checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute);
+
             if (notesImageUri != null) {
 
-                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                Map notesMap = new HashMap<>();
+                notesMap.put("noteReminderYear", checklistReminderYear);
+                notesMap.put("noteReminderMonth", checklistReminderMonth);
+                notesMap.put("noteReminderDate", checklistReminderDate);
+                notesMap.put("noteReminderHour", checklistReminderHour);
+                notesMap.put("noteReminderMinute", checklistReminderMinute);
+                notesMap.put("notesTitle", checklistRemindersTitle);
+                notesMap.put("content", dataMap);
+
+                notesDatabase.updateChildren(notesMap).addOnCompleteListener(new OnCompleteListener() {
                     @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    public void onComplete(@NonNull Task task) {
 
                         if (task.isSuccessful()) {
 
-                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                            if (Url != null) {
+                            if (notesImageUri != null) {
 
-                                ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
-                                        checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute, Url.toString());
-
-                                notesDatabase.setValue(checklistReminders).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                                     @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
+                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
                                         if (task.isSuccessful()) {
 
-                                            if (getActivity() != null) {
+                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                            if (Url != null) {
 
-                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                Map imageMap = new HashMap<>();
+                                                imageMap.put("imageUri", Url.toString());
+
+                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                                        if (task.isSuccessful()) {
+
+                                                            if (getActivity() != null) {
+
+                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    }
+                                                });
                                             }
                                         }
                                     }
                                 });
+                            } else {
+
+                                if (getActivity() != null) {
+
+                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }
@@ -432,18 +463,49 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
             } else {
 
-                ChecklistReminders checklistReminders = new ChecklistReminders(checklistRemindersTitle, dataMap,
-                        checklistReminderYear, checklistReminderMonth, checklistReminderDate, checklistReminderHour, checklistReminderMinute);
-
                 notesDatabase.setValue(checklistReminders).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
 
-                            if (getActivity() != null) {
+                            if (notesImageUri != null) {
 
-                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                            if (Url != null) {
+
+                                                Map imageMap = new HashMap<>();
+                                                imageMap.put("imageUri", Url.toString());
+
+                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                                        if (task.isSuccessful()) {
+
+                                                            if (getActivity() != null) {
+
+                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+
+                                if (getActivity() != null) {
+
+                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }

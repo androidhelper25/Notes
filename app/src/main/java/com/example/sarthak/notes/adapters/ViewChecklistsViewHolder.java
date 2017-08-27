@@ -6,6 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 
 import com.example.sarthak.notes.R;
 
@@ -17,20 +19,29 @@ public class ViewChecklistsViewHolder extends RecyclerView.ViewHolder {
 
     View itemView;
 
+    private RelativeLayout mLayout;
     private EditText mChecklistDataEt;
     private CheckBox mChecklistBox;
+    private ImageButton mCloseButton;
 
     public ViewChecklistsViewHolder(View itemView) {
         super(itemView);
 
         this.itemView = itemView;
+        this.mLayout = (RelativeLayout) itemView.findViewById(R.id.card_layout);
         this.mChecklistDataEt = (EditText) itemView.findViewById(R.id.checklist_data);
         this.mChecklistBox = (CheckBox) itemView.findViewById(R.id.checklist_checkbox);
+        this.mCloseButton = (ImageButton) itemView.findViewById(R.id.checklist_delete);
+
+        this.mLayout.setPadding(2, 2, 2, 2);
 
         this.mChecklistDataEt.setFocusable(false);
         this.mChecklistDataEt.setClickable(false);
+        this.mChecklistDataEt.setTextSize(16);
 
         this.mChecklistBox.setEnabled(false);
+
+        this.mCloseButton.setVisibility(View.INVISIBLE);
     }
 
     void bindData(HashMap<String, String> dataItem, String checklistType, Context context) {

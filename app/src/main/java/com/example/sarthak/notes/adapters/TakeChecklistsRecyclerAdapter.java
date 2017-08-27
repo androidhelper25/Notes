@@ -3,6 +3,7 @@ package com.example.sarthak.notes.adapters;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,10 +49,16 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
     }
 
     @Override
-    public void onBindViewHolder(final TakeChecklistsViewHolder holder, final int position) {
+    public void onBindViewHolder(final TakeChecklistsViewHolder holder, int position) {
 
         if (position < checklistList.size()) {
-            holder.bindData(mContext, checklistList.get(position), statusList.get(position));
+
+            Log.e("poa", String.valueOf(position));
+            holder.bindData(mContext, checklistList.get(holder.getAdapterPosition()), statusList.get(holder.getAdapterPosition()));
+        } else {
+
+            holder.mDataEt.requestFocus();
+            holder.bindData(mContext, "", "unchecked");
         }
 
         holder.mDataEt.setOnKeyListener(new View.OnKeyListener() {
@@ -97,8 +104,8 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
                     holder.mDataEt.setTextColor(ContextCompat.getColor(mContext, R.color.colorSecondaryText));
                 }
 
-                checkListListener.checklistCheckboxChecked(isChecked, position);
-                checkListListener.checklistReminderCheckboxChecked(isChecked, position);
+                checkListListener.checklistCheckboxChecked(isChecked, holder.getAdapterPosition());
+                checkListListener.checklistReminderCheckboxChecked(isChecked, holder.getAdapterPosition());
             }
         });
 
@@ -106,8 +113,8 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
             @Override
             public void onClick(View view) {
 
-                checkListListener.checklistDeleteButtonPressed(position);
-                checkListListener.checklistReminderDeleteButtonPressed(position);
+                checkListListener.checklistDeleteButtonPressed(holder.getAdapterPosition());
+                checkListListener.checklistReminderDeleteButtonPressed(holder.getAdapterPosition());
             }
         });
     }

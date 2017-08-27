@@ -165,10 +165,10 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
                             }
                             // update recycler view adapter
                             remindersRecyclerAdapter.notifyDataSetChanged();
-                            // dismiss progress dialog
-                            progressDialog.dismiss();
                         }
                     }
+                    // dismiss progress dialog
+                    progressDialog.dismiss();
                 }
 
                 @Override

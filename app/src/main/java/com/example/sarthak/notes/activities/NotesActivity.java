@@ -113,7 +113,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
 
                 // launch implicit intent to access gallery
                 // 'image/*' specifies images of all types
-                Intent intent = new Intent();
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
 

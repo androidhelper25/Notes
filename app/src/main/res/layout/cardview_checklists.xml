@@ -18,17 +18,16 @@
                 android:id="@+id/cardTitleTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hello"
                 android:textSize="32sp"
                 android:paddingTop="10dp"
-                android:paddingStart="10dp"
+                android:paddingStart="8dp"
                 android:paddingEnd="10dp" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/cardChecklistList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="10dp"
+                android:padding="5dp"
                 android:clipToPadding="false" />
 
         </LinearLayout>

@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,10 +33,13 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TakeNotesFragment extends Fragment implements BackButtonListener, SetImageListener {
 
-    String notesTitle = " ";
-    String notesBody = " ";
+    String notesTitle = "";
+    String notesBody = "";
 
     int count, notesPosition;
 
@@ -155,42 +159,66 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
             imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(notesTitle.equals(" ") && notesBody.equals(" ") && notesImageUri != null)) {
+        if (!(notesTitle.equals("") && notesBody.equals(""))) {
 
-            if (notesImageUri != null) {
+            Notes notes = new Notes(notesTitle, notesBody);
 
-                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            if (notesData != null) {
+
+                Map notesMap = new HashMap<>();
+                notesMap.put("notesTitle", notesTitle);
+                notesMap.put("notesBody", notesBody);
+
+                notesDatabase.updateChildren(notesMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
 
-                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                            if (Url != null) {
+                            Log.e("podi", String.valueOf(notesImageUri));
+                            if (notesImageUri != null) {
 
-                                Notes notes = new Notes(notesTitle, notesBody, Url.toString());
-
-                                notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                                     @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
+                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
 
                                         if (task.isSuccessful()) {
 
-                                            if (getActivity() != null) {
+                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                            if (Url != null) {
 
-                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                Map imageMap = new HashMap<>();
+                                                imageMap.put("imageUri", Url.toString());
+
+                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                                        if (task.isSuccessful()) {
+
+                                                            if (getActivity() != null) {
+
+                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    }
+                                                });
                                             }
                                         }
                                     }
                                 });
+
+                            } else {
+
+                                if (getActivity() != null) {
+
+                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }
                 });
-
             } else {
-
-                Notes notes = new Notes(notesTitle, notesBody);
 
                 notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -198,9 +226,45 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
                         if (task.isSuccessful()) {
 
-                            if (getActivity() != null) {
+                            Log.e("podi", String.valueOf(notesImageUri));
+                            if (notesImageUri != null) {
 
-                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                            if (Url != null) {
+
+                                                Map imageMap = new HashMap<>();
+                                                imageMap.put("imageUri", Url.toString());
+
+                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                                        if (task.isSuccessful()) {
+
+                                                            if (getActivity() != null) {
+
+                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+
+                            } else {
+
+                                if (getActivity() != null) {
+
+                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }
@@ -219,6 +283,9 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
     private void displayData() {
 
         if (notesData != null) {
+
+            this.notesTitle = notesData.getNotesTitle();
+            this.notesBody = notesData.getNotesBody();
 
             mNotesTitleEt.setText(notesData.getNotesTitle());
             mNotesBodyEt.setText(notesData.getNotesBody());

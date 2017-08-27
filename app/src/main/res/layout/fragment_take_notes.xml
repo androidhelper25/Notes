@@ -45,13 +45,16 @@
                 android:textColorHint="@color/colorDividerLine"
                 android:textColor="@color/colorSecondaryText"
                 android:inputType="textCapSentences|textMultiLine"
+
                 android:layout_below="@+id/notesTitle"
                 android:layout_marginTop="15dp"
                 android:layout_marginStart="25dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="10dp"
                 android:maxLength="2000"
-                android:maxLines="75" />
+                android:maxLines="75">
+                <requestFocus />
+            </EditText>
 
         </RelativeLayout>
 

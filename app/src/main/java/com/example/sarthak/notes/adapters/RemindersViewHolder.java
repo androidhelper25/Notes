@@ -24,7 +24,11 @@ public class RemindersViewHolder extends RecyclerView.ViewHolder {
 
     void bindData(NoteReminders reminders) {
 
-        mNotesTitleTv.setText(reminders.getNotesTitle());
+        if (reminders.getNotesTitle().equals("")) {
+            mNotesTitleTv.setHeight(0);
+        } else {
+            mNotesTitleTv.setText(reminders.getNotesTitle());
+        }
         mNotesBodyTv.setText(reminders.getNotesBody());
         mNotesReminderTv.setText(reminders.getNoteReminderDate() + "/" +
                                  reminders.getNoteReminderMonth() + "/" +

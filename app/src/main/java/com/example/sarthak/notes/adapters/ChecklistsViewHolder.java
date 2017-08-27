@@ -37,6 +37,10 @@ public class ChecklistsViewHolder extends RecyclerView.ViewHolder {
         mChecklistList.setItemAnimator(new DefaultItemAnimator());
         mChecklistList.setAdapter(viewChecklistsRecyclerAdapter);
 
-        mTitleTv.setText(checklists.getNotesTitle());
+        if (checklists.getNotesTitle().equals("")) {
+            mTitleTv.setHeight(0);
+        } else {
+            mTitleTv.setText(checklists.getNotesTitle());
+        }
     }
 }

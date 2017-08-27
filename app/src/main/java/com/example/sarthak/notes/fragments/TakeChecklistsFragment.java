@@ -39,6 +39,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TakeChecklistsFragment extends Fragment implements CheckListListener, BackButtonListener, SetImageListener, TextWatcher {
 
@@ -201,7 +202,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
             imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(checklistsTitle.equals(" ") && dataList.isEmpty() && notesImageUri != null)) {
+        if (!(checklistsTitle.equals(" ") && dataList.isEmpty())) {
 
             final HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
 
@@ -214,7 +215,58 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                 dataMap.put("content_0" + String.valueOf(i + 1), contentMap);
             }
 
-            if (notesImageUri != null) {
+            Checklists checklists = new Checklists(checklistsTitle, dataMap);
+
+            if (checklistsData != null) {
+
+                Map notesMap = new HashMap<>();
+                notesMap.put("notesTitle", checklistsTitle);
+                notesMap.put("content", dataMap);
+
+                notesDatabase.updateChildren(notesMap).addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+
+                        if (task.isSuccessful()) {
+
+                            imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                                    if (task.isSuccessful()) {
+
+                                        @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                        if (Url != null) {
+
+                                            Map imageMap = new HashMap<>();
+                                            imageMap.put("imageUri", Url.toString());
+
+                                            notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+
+                                                    if (task.isSuccessful()) {
+
+                                                        if (getActivity() != null) {
+
+                                                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        } else {
+
+                            if (getActivity() != null) {
+
+                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                });
 
                 imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -247,17 +299,50 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
             } else {
 
-                Checklists checklists = new Checklists(checklistsTitle, dataMap);
-
                 notesDatabase.setValue(checklists).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
 
-                            if (getActivity() != null) {
+                            if (notesImageUri != null) {
 
-                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                                        if (task.isSuccessful()) {
+
+                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
+                                            if (Url != null) {
+
+                                                Map imageMap = new HashMap<>();
+                                                imageMap.put("imageUri", Url.toString());
+
+                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+
+                                                        if (task.isSuccessful()) {
+
+                                                            if (getActivity() != null) {
+
+                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+
+                            } else {
+
+                                if (getActivity() != null) {
+
+                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }
