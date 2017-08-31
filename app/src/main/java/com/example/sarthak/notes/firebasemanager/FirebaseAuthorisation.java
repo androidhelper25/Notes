@@ -5,8 +5,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
+import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.HomeScreenActivity;
 import com.example.sarthak.notes.models.User;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,13 +28,14 @@ public class FirebaseAuthorisation {
 
     private FirebaseAuth mAuth;
 
-    // set up firebase authentication
     public FirebaseAuthorisation(Context context) {
 
         this.mContext = context;
 
+        // set up an instance of firebase authentication
         mAuth = FirebaseAuth.getInstance();
     }
+
     /**
      * Registers user logged in through Google account to firebase authentication
      *
@@ -42,23 +45,23 @@ public class FirebaseAuthorisation {
 
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
 
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(((Activity) mContext), new OnCompleteListener<AuthResult>() {
+        // sign in with Google credentials
+        mAuth.signInWithCredential(credential).addOnCompleteListener(((Activity) mContext), new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
 
                         if (!task.isSuccessful()) {
 
                             mProgressDialog.dismiss();
-                            Toast.makeText(mContext, "Error", Toast.LENGTH_SHORT).show();
+                            // show error dialog
+                            showErrorDialog();
                         } else {
 
                             // get current user UID
                             String UID = getCurrentUser();
 
                             DatabaseReference mDatabase;
-
-                            // create a database reference for the user
+                            // create an instance of firebase database for the user
                             mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(UID);
 
                             User user = new User(account.getPhotoUrl(), account.getDisplayName(), account.getEmail());
@@ -94,7 +97,9 @@ public class FirebaseAuthorisation {
                 });
     }
 
-    // get current user UID
+    /**
+     * Get current user UID
+     */
     public String getCurrentUser() {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -104,5 +109,17 @@ public class FirebaseAuthorisation {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Display error dialog
+     */
+    private void showErrorDialog() {
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
+        alertDialog.setTitle(R.string.error_dialog_title);
+        alertDialog.setMessage(R.string.error_dialog_message);
+        alertDialog.setCancelable(false);
+        alertDialog.show();
     }
 }

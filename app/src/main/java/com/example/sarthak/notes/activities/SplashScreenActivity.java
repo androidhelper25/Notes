@@ -28,22 +28,23 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Configure sign-in to request the user's ID, email address, and basic
-        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        // configure sign-in to request the user's ID, email address, and basic profile
+        // ID and basic profile are included in DEFAULT_SIGN_IN
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
-        // Build a GoogleApiClient with access to the Google Sign-In API and the
-        // options specified by gso.
+        // build a GoogleApiClient with access to the Google Sign-In API and the options specified by gso.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(SplashScreenActivity.this  /* FragmentActivity */ , this  /* OnConnectionFailedListener */ )
+                .enableAutoManage(SplashScreenActivity.this  /* Activity */ , this  /* OnConnectionFailedListener */ )
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+        // set up progress dialog
         setUpProgressDialog();
 
+        // launch HomeScreenActivity
         launchActivity();
     }
 
@@ -51,7 +52,7 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        // result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
 
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -60,6 +61,7 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
 
                 mProgressDialog.show();
                 GoogleSignInAccount account = result.getSignInAccount();
+                // register user to firebase database
                 FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(SplashScreenActivity.this);
                 firebaseAuth.firebaseAuthWithGoogle(account, mProgressDialog);
             } else {
@@ -69,21 +71,31 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
+    //----------------------------------------------------------------------------------------------
+    // GoogleApiClient's connection failed listener
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
 
+    /**
+     * Set up progress dialog
+     */
     private void setUpProgressDialog() {
 
         mProgressDialog = new ProgressDialog(SplashScreenActivity.this);
-        mProgressDialog.setTitle("Setting up things");
-        mProgressDialog.setMessage("Please wait while we setup Notes for you...");
+        mProgressDialog.setTitle(getString(R.string.login_dialog_title));
+        mProgressDialog.setMessage(getString(R.string.login_dialog_message));
         mProgressDialog.setCanceledOnTouchOutside(false);
     }
 
+    /**
+     * Launch Home Activity
+     */
     private void launchActivity() {
 
+        // get firebase current user
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(SplashScreenActivity.this);
         String currentUser = firebaseAuth.getCurrentUser();
 
@@ -97,6 +109,9 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
+    /**
+     * Launch Google sign in Intent
+     */
     private void launchGoogleSignInIntent() {
 
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);

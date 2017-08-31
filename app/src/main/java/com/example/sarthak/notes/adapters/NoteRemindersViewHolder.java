@@ -7,13 +7,13 @@ import android.widget.TextView;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.models.NoteReminders;
 
-public class RemindersViewHolder extends RecyclerView.ViewHolder {
+public class NoteRemindersViewHolder extends RecyclerView.ViewHolder {
 
     View itemView;
 
     private TextView mNotesTitleTv, mNotesBodyTv, mNotesReminderTv;
 
-    public RemindersViewHolder(View itemView) {
+    public NoteRemindersViewHolder(View itemView) {
         super(itemView);
 
         this.itemView = itemView;

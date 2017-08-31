@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="day_array">
+        <item>Today</item>
+        <item>Tomorrow</item>
+        <item>Select any day...</item>
+    </array>
+    <array name="time_array">
+        <item>After 1 hour</item>
+        <item>After 6 hours</item>
+        <item>After 12 hours</item>
+        <item>Select any time...</item>
+    </array>
+</resources>

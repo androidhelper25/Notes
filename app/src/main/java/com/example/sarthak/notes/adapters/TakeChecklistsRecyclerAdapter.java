@@ -74,9 +74,9 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
                         if (checklistListenerContext.equals("checklists")) {
 
                             if (holder.mCheckBox.isChecked()) {
-                                checkListListener.checklistEnterKeyPressed(dataItem, "checked");
+                                checkListListener.checklistEnterKeyPressed(dataItem, "checked", holder.getAdapterPosition());
                             } else {
-                                checkListListener.checklistEnterKeyPressed(dataItem, "unchecked");
+                                checkListListener.checklistEnterKeyPressed(dataItem, "unchecked", holder.getAdapterPosition());
                             }
                         } else if (checklistListenerContext.equals("checklistReminders")) {
 

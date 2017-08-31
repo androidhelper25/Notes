@@ -72,7 +72,7 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
             case NOTES :
 
                 View noteRemindersView = mInflater.inflate(R.layout.cardview_note_reminders, parent, false);
-                viewHolder = new RemindersViewHolder(noteRemindersView);
+                viewHolder = new NoteRemindersViewHolder(noteRemindersView);
                 break;
 
             case CHECKLISTS :
@@ -92,11 +92,11 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
 
             case NOTES :
 
-                RemindersViewHolder remindersViewHolder = (RemindersViewHolder) holder;
+                NoteRemindersViewHolder noteRemindersViewHolder = (NoteRemindersViewHolder) holder;
                 NoteReminders noteRemindersItem = (NoteReminders) remindersList.get(holder.getAdapterPosition());
-                remindersViewHolder.bindData(noteRemindersItem);
+                noteRemindersViewHolder.bindData(noteRemindersItem);
 
-                remindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                noteRemindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
 

@@ -1,5 +1,7 @@
 package com.example.sarthak.notes.models;
 
+import com.example.sarthak.notes.utils.Constants;
+
 import java.io.Serializable;
 import java.util.HashMap;
 
@@ -17,12 +19,12 @@ public class ChecklistReminders implements Serializable {
     private String noteReminderMinute;
 
     public ChecklistReminders() {
-        // Default constructor required for calls to DataSnapshot.getValue(NoteReminders.class)
+        // Default constructor required for calls to DataSnapshot.getValue(ChecklistReminders.class)
     }
 
     public ChecklistReminders(String notesTitle, HashMap<String, HashMap<String, String>> dataMap, String year, String month, String date, String hour, String minute) {
 
-        this.notesType = "Checklists";
+        this.notesType = Constants.TYPE_CHECKLISTS;
         this.notesTitle = notesTitle;
         this.content = dataMap;
 
@@ -35,7 +37,7 @@ public class ChecklistReminders implements Serializable {
 
     public ChecklistReminders(String notesTitle, HashMap<String, HashMap<String, String>> dataMap, String year, String month, String date, String hour, String minute, String uri) {
 
-        this.notesType = "Checklists";
+        this.notesType = Constants.TYPE_CHECKLISTS;
         this.notesTitle = notesTitle;
         this.content = dataMap;
         this.imageUri = uri;
@@ -48,7 +50,7 @@ public class ChecklistReminders implements Serializable {
     }
 
     public String getNotesType() {
-        return "Checklists";
+        return Constants.TYPE_CHECKLISTS;
     }
 
     public String getNotesTitle() {

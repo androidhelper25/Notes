@@ -1,5 +1,7 @@
 package com.example.sarthak.notes.models;
 
+import com.example.sarthak.notes.utils.Constants;
+
 import java.io.Serializable;
 
 public class NoteReminders implements Serializable {
@@ -22,7 +24,7 @@ public class NoteReminders implements Serializable {
 
     public NoteReminders(String notesTitle, String notesBody, String year, String month, String date, String hour, String minute, String uri) {
 
-        this.noteType = "Notes";
+        this.noteType = Constants.TYPE_NOTES;
         this.notesTitle = notesTitle;
         this.notesBody = notesBody;
         this.imageUri = uri;
@@ -36,7 +38,7 @@ public class NoteReminders implements Serializable {
 
     public NoteReminders(String notesTitle, String notesBody, String year, String month, String date, String hour, String minute) {
 
-        this.noteType = "Notes";
+        this.noteType = Constants.TYPE_NOTES;
         this.notesTitle = notesTitle;
         this.notesBody = notesBody;
 
@@ -48,7 +50,7 @@ public class NoteReminders implements Serializable {
     }
 
     public String getNoteType() {
-        return "Notes";
+        return Constants.TYPE_NOTES;
     }
 
     public String getNotesTitle() {

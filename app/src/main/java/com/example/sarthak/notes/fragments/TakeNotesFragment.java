@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +14,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.sarthak.notes.firebasemanager.FirebaseUploadDataManager;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
+import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -30,7 +31,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -61,21 +61,23 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         // set action bar title
         ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.notes);
 
-        notesPosition = getArguments().getInt("position");
-        notesData = (Notes) getArguments().getSerializable("notes");
+        notesPosition = getArguments().getInt(Constants.INTENT_PASS_POSITION);
+        notesData = (Notes) getArguments().getSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE);
         mStorage = FirebaseStorage.getInstance().getReference();
 
+        // set up view components
         setUpView(view);
-
+        // get total number of items in 'Notes' in firebase database
         getNotesCount();
 
+        //display data in view components
         displayData();
 
-        //------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------
         // textChangedListeners for edit texts
-        //------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------
         mNotesTitleEt.addTextChangedListener(titleWatcher);
         mNotesBodyEt.addTextChangedListener(bodyWatcher);
 
@@ -86,13 +88,15 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
     public void onAttach(Context context) {
         super.onAttach(context);
 
+        // callback for back button pressed in fragment
         ((NotesActivity) context).backButtonListener = this;
+        // callback for setting image in fragment
         ((NotesActivity) context).setImageListener = this;
     }
 
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // editText textChanged listener
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     TextWatcher titleWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -129,6 +133,9 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         }
     };
 
+    //----------------------------------------------------------------------------------------------
+    // Callback for setImage in fragment
+    //----------------------------------------------------------------------------------------------
     @Override
     public void setImage(Uri uri) {
 
@@ -138,32 +145,47 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
                 .into(mNotesImage);
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Callback for back button pressed in fragment
+    //----------------------------------------------------------------------------------------------
     @Override
     public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
         final StorageReference imageStorage;
 
+        final FirebaseUploadDataManager firebaseUploadDataManager = new FirebaseUploadDataManager(getActivity());
+
+        // get current user
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
         final String currentUser = firebaseAuth.getCurrentUser();
 
+        // set up an instance for firebase database
+        // if data is null, create new database reference. Else refer to existing database reference
         if (notesData != null) {
 
-            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition));
-            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1));
-            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
         if (!(notesTitle.equals("") && notesBody.equals(""))) {
 
             Notes notes = new Notes(notesTitle, notesBody);
 
-            if (notesData != null) {
+            // If image is not set,i.e., notesImages is null, set model 'Notes' to firebase database.
+            // Else, use a hashMap to add values to database so that the database is updated with the values instead
+            // of creating a new model which would delete the imageUri from firebase database.
+            if (notesImageUri != null) {
 
                 Map notesMap = new HashMap<>();
                 notesMap.put("notesTitle", notesTitle);
@@ -175,49 +197,12 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
                         if (task.isSuccessful()) {
 
-                            Log.e("podi", String.valueOf(notesImageUri));
-                            if (notesImageUri != null) {
-
-                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                                            if (Url != null) {
-
-                                                Map imageMap = new HashMap<>();
-                                                imageMap.put("imageUri", Url.toString());
-
-                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-
-                                                        if (task.isSuccessful()) {
-
-                                                            if (getActivity() != null) {
-
-                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-
-                            } else {
-
-                                if (getActivity() != null) {
-
-                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                }
-                            }
+                            // upload image to firebase storage and set value in firebase database
+                            firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
                         }
                     }
                 });
+
             } else {
 
                 notesDatabase.setValue(notes).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -226,46 +211,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
                         if (task.isSuccessful()) {
 
-                            Log.e("podi", String.valueOf(notesImageUri));
-                            if (notesImageUri != null) {
-
-                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                                            if (Url != null) {
-
-                                                Map imageMap = new HashMap<>();
-                                                imageMap.put("imageUri", Url.toString());
-
-                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-
-                                                        if (task.isSuccessful()) {
-
-                                                            if (getActivity() != null) {
-
-                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-
-                            } else {
-
-                                if (getActivity() != null) {
-
-                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                }
-                            }
+                            Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -273,6 +219,9 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         }
     }
 
+    /**
+     * Initialise view components
+     */
     private void setUpView(View view) {
 
         mNotesTitleEt = (EditText) view.findViewById(R.id.notesTitle);
@@ -280,8 +229,12 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
     }
 
+    /**
+     * Display data in view components
+     */
     private void displayData() {
 
+        // check notesData to avoid NullPointerException for a new Note
         if (notesData != null) {
 
             this.notesTitle = notesData.getNotesTitle();
@@ -309,7 +262,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
         String currentUser = firebaseAuthorisation.getCurrentUser();
 
-        mDatabase.child(currentUser).child("Notes").addValueEventListener(new ValueEventListener() {
+        mDatabase.child(currentUser).child(Constants.TYPE_NOTES).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 

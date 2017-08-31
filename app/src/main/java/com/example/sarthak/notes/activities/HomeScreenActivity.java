@@ -33,13 +33,15 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeScreenActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
-    String noteType = "Notes";
+    String noteType = Constants.TYPE_NOTES;
 
     NavigationView navigationView;
 
+    // navigation view components
     CircleImageView profileImage;
     TextView profileName, profileEmail;
 
+    // home activity view components
     ImageButton buttonChecklist, buttonImage;
     TextView takeNote;
 
@@ -54,7 +56,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         setUpView();
 
         // launch default fragment as 'Notes' category
-        launchDefaultFragment();
+        launchNotesFragment();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -87,39 +89,52 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         }
     }
 
+    //----------------------------------------------------------------------------------------------
+    // onClick listener's callback
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view) {
 
+        // launch Notes activity
         Intent notesIntent = new Intent(HomeScreenActivity.this, NotesActivity.class);
 
         switch (view.getId()) {
 
             case R.id.textViewNotes :
 
-                if (noteType.equals("Notes")) {
+                if (noteType.equals(Constants.TYPE_NOTES)) {
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_NOTES);
-                } else if (noteType.equals("Reminders")) {
+                    // launch Notes fragment
+                    notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_NOTES);
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_NOTE_REMINDERS);
+                } else if (noteType.equals(Constants.TYPE_REMINDERS)) {
+
+                    // launch NoteReminders fragment
+                    notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_NOTE_REMINDERS);
                 }
                 startActivity(notesIntent);
                 break;
 
             case R.id.button_checkList :
 
-                if (noteType.equals("Notes")) {
+                if (noteType.equals(Constants.TYPE_NOTES)) {
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLISTS);
-                } else if (noteType.equals("Reminders")) {
+                    // launch Checklists fragment
+                    notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_CHECKLISTS);
 
-                    notesIntent.putExtra("type", Constants.INTENT_PASS_CHECKLIST_REMINDERS);
+                } else if (noteType.equals(Constants.TYPE_REMINDERS)) {
+
+                    // launch ChecklistReminders fragment
+                    notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_CHECKLIST_REMINDERS);
                 }
                 startActivity(notesIntent);
                 break;
         }
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Navigation view item click listener
+    //----------------------------------------------------------------------------------------------
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -127,12 +142,16 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
 
             case R.id.nav_notes :
 
-                noteType = "Notes";
-                launchDefaultFragment();
+                // set notesType as 'Notes' to identify the currently active fragment as 'Notes'
+                noteType = Constants.TYPE_NOTES;
+                //launch 'Notes' fragment
+                launchNotesFragment();
                 break;
             case R.id.nav_reminders :
 
-                noteType = "Reminders";
+                // set notesType as 'Reminders' to identify the currently active fragment as 'Reminders'
+                noteType = Constants.TYPE_REMINDERS;
+                // launch 'Reminders' fragment
                 launchReminderFragment();
                 break;
         }
@@ -142,6 +161,9 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         return true;
     }
 
+    /**
+     * Initialise view components
+     */
     private void setUpView() {
 
         takeNote = (TextView) findViewById(R.id.textViewNotes);
@@ -149,7 +171,10 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         buttonImage = (ImageButton) findViewById(R.id.buttonMessage);
     }
 
-    public void launchDefaultFragment() {
+    /**
+     * Launch 'Notes' fragment
+     */
+    public void launchNotesFragment() {
 
         Fragment notesFragment = new NotesFragment();
 
@@ -158,6 +183,9 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         notesFragmentTransaction.commit();
     }
 
+    /**
+     * Launch 'Reminders' fragment
+     */
     private void launchReminderFragment() {
 
         Fragment remindersFragment = new RemindersFragment();
@@ -167,6 +195,9 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         notesFragmentTransaction.commit();
     }
 
+    /**
+     * Set up Navigation drawer view with Google account details
+     */
     private void setUpNavigationView() {
 
         View header = navigationView.getHeaderView(0);
@@ -178,8 +209,10 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         profileName = (TextView) header.findViewById(R.id.nav_profile_name);
         profileEmail = (TextView) header.findViewById(R.id.nav_profile_email);
 
+        // set up an instance of firebase database
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser);
 
+        // retrieve user details and set up in view components
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

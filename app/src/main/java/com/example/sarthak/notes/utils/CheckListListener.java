@@ -2,9 +2,9 @@ package com.example.sarthak.notes.utils;
 
 public interface CheckListListener {
 
-    void checklistEnterKeyPressed(String data, String status);
+    void checklistEnterKeyPressed(String data, String status, int position);
 
-    void checklistReminderEnterKeyPressed(String data, String status);
+    void checklistReminderEnterKeyPressed(String data, String status, int position);
 
     void checklistCheckboxChecked(boolean b, int pos);
 

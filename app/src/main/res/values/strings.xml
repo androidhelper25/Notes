@@ -8,6 +8,15 @@
 
     <string name="action_settings">Settings</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="gallery_dialog_title">Select Picture</string>
+    <string name="login_dialog_title">Setting up things</string>
+    <string name="login_dialog_message">Please wait while we setup Notes for you…</string>
+
+    <string name="error_dialog_title">Error encountered</string>
+    <string name="error_dialog_message">Please try again later.</string>
+
+    <string name="upload_image_error">Error uploading image</string>
+    <string name="fetch_data_dialog_message">Fetching data…</string>
+
+    <string name="note_added_toast">Note added.</string>
 </resources>

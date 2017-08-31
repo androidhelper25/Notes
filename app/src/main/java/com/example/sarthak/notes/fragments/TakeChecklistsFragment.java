@@ -21,9 +21,11 @@ import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.NotesActivity;
 import com.example.sarthak.notes.adapters.TakeChecklistsRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
+import com.example.sarthak.notes.firebasemanager.FirebaseUploadDataManager;
 import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.utils.BackButtonListener;
 import com.example.sarthak.notes.utils.CheckListListener;
+import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.SetImageListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -34,7 +36,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
     private Uri notesImageUri;
 
-    String checklistsTitle = " ";
+    String checklistsTitle = "";
     String checklistListenerContext = "checklists";
 
     private ArrayList<String> dataList = new ArrayList<>();
@@ -72,14 +73,18 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         // Set title bar
         ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.notes);
 
-        notesPosition = getArguments().getInt("position");
-        checklistsData = (Checklists) getArguments().getSerializable("notes");
+        // retrieve notesPosition and data from 'Notes' fragment
+        notesPosition = getArguments().getInt(Constants.INTENT_PASS_POSITION);
+        checklistsData = (Checklists) getArguments().getSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        // set up an instance of firebase database reference
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE);
+        // set up an instance of firebase storage
         mStorage = FirebaseStorage.getInstance().getReference();
 
+        // set up view components
         setUpView(view);
-
+        // get total number of items in 'Notes' in firebase database
         getNotesCount();
 
         RecyclerView mChecklistList = (RecyclerView) view.findViewById(R.id.checklistList);
@@ -90,6 +95,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         mChecklistList.setItemAnimator(new DefaultItemAnimator());
         mChecklistList.setAdapter(takeChecklistsRecyclerAdapter);
 
+        // display data in view components
         displayData();
 
         // editText textChanged listener
@@ -102,35 +108,59 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     public void onAttach(Context context) {
         super.onAttach(context);
 
+        // callback for back button pressed in fragment
         ((NotesActivity) context).backButtonListener = this;
+        // callback for setting image in fragment
         ((NotesActivity) context).setImageListener = this;
     }
 
     //----------------------------------------------------------------------------------
     // checkList component's click listeners
     //----------------------------------------------------------------------------------
+    /**
+     * Callback for enter key pressed in check list for adding data to checklist
+     *
+     * @param data is the string value entered in individual item of checklist
+     * @param status is the status whether the item is checked or not
+     * @param position is the position of the item in arraylist
+     */
     @Override
-    public void checklistEnterKeyPressed(String data, String status) {
+    public void checklistEnterKeyPressed(String data, String status, int position) {
 
-        dataList.add(data);
-        statusList.add(status);
+        if (position < dataList.size()) {
+            // update data tin arraylist for existing values in checklist
+            dataList.set(position, data);
+            statusList.set(position, status);
+        } else {
+            // add data to arraylist for values entered in checklist
+            dataList.add(data);
+            // add status for each item entered in checklist
+            statusList.add(status);
+        }
+        // update recycler view adapter
         takeChecklistsRecyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void checklistReminderEnterKeyPressed(String data, String status) {
+    public void checklistReminderEnterKeyPressed(String data, String status, int position) {
 
     }
 
+    /**
+     * Callback for check box selected for individual item in checklist
+     *
+     * @param status is the status whether the item is checked or not
+     * @param position is the position of the item in arraylist
+     */
     @Override
     public void checklistCheckboxChecked(boolean status, int position) {
 
         if (position < statusList.size()) {
 
             if (status) {
-                statusList.set(position, "checked");
+                statusList.set(position, Constants.CHECKED_STATUS);
             } else {
-                statusList.set(position, "unchecked");
+                statusList.set(position, Constants.UNCHECKED_STATUS);
             }
         }
     }
@@ -145,6 +175,11 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
     }
 
+    /**
+     * Callback for 'Delete' imageButton pressed in checklist to remove individual item
+     *
+     * @param position is position of the item in arraylist to be deleted
+     */
     @Override
     public void checklistReminderDeleteButtonPressed(int position) {
 
@@ -172,6 +207,9 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         checklistsTitle = mChecklistsTitleEt.getText().toString();
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Callback for setImage in fragment
+    //----------------------------------------------------------------------------------------------
     @Override
     public void setImage(Uri uri) {
 
@@ -181,43 +219,55 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                 .into(mNotesImage);
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Callback for back button pressed in fragment
+    //----------------------------------------------------------------------------------------------
     @Override
     public void backButtonPressed() {
 
         final DatabaseReference notesDatabase;
         final StorageReference imageStorage;
 
+        final FirebaseUploadDataManager firebaseUploadDataManager = new FirebaseUploadDataManager(getActivity());
+
+        // get current user
         FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
         final String currentUser = firebaseAuth.getCurrentUser();
 
+        // set up an instance for firebase database
+        // if data is null, create new database reference. Else refer to existing database reference
         if (checklistsData != null) {
 
-            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition));
-            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesPosition) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1));
-            imageStorage = mStorage.child(currentUser).child("Notes").child("Notes_0" + String.valueOf(notesCount + 1) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
-        if (!(checklistsTitle.equals(" ") && dataList.isEmpty())) {
+        if (!(checklistsTitle.equals("") && dataList.isEmpty())) {
 
             final HashMap<String, HashMap<String, String>> dataMap = new HashMap<>();
 
+            // set up content for each item in checklist as HashMap
             for (int i = 0; i < dataList.size(); i++) {
 
                 HashMap<String, String> contentMap = new HashMap<>();
-                contentMap.put("value", dataList.get(i));
-                contentMap.put("status", statusList.get(i));
+                contentMap.put(Constants.HASHMAP_VALUE, dataList.get(i));
+                contentMap.put(Constants.HASHMAP_STATUS, statusList.get(i));
 
                 dataMap.put("content_0" + String.valueOf(i + 1), contentMap);
             }
 
             Checklists checklists = new Checklists(checklistsTitle, dataMap);
 
-            if (checklistsData != null) {
+            // If image is not set,i.e., notesImages is null, set model 'Checklists' to firebase database.
+            // Else, use a hashMap to add values to database so that the database is updated with the values instead
+            // of creating a new model which would delete the imageUri from firebase database.
+            if (notesImageUri != null) {
 
                 Map notesMap = new HashMap<>();
                 notesMap.put("notesTitle", checklistsTitle);
@@ -229,70 +279,8 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
                         if (task.isSuccessful()) {
 
-                            imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                                    if (task.isSuccessful()) {
-
-                                        @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                                        if (Url != null) {
-
-                                            Map imageMap = new HashMap<>();
-                                            imageMap.put("imageUri", Url.toString());
-
-                                            notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-
-                                                    if (task.isSuccessful()) {
-
-                                                        if (getActivity() != null) {
-
-                                                            Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    }
-                                }
-                            });
-                        } else {
-
-                            if (getActivity() != null) {
-
-                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                });
-
-                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                        if (task.isSuccessful()) {
-
-                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                            if (Url != null) {
-
-                                Checklists checklists = new Checklists(checklistsTitle, dataMap, Url.toString());
-
-                                notesDatabase.setValue(checklists).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            if (getActivity() != null) {
-
-                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                    }
-                                });
-                            }
+                            // upload image to firebase storage and set value in firebase database
+                            firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
                         }
                     }
                 });
@@ -305,45 +293,10 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
                         if (task.isSuccessful()) {
 
-                            if (notesImageUri != null) {
-
-                                imageStorage.putFile(notesImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            @SuppressWarnings("VisibleForTests") Uri Url = task.getResult().getDownloadUrl();
-                                            if (Url != null) {
-
-                                                Map imageMap = new HashMap<>();
-                                                imageMap.put("imageUri", Url.toString());
-
-                                                notesDatabase.updateChildren(imageMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-
-                                                        if (task.isSuccessful()) {
-
-                                                            if (getActivity() != null) {
-
-                                                                Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-
-                            } else {
-
                                 if (getActivity() != null) {
 
-                                    Toast.makeText(getActivity(), "Note added.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
                                 }
-                            }
                         }
                     }
                 });
@@ -351,23 +304,24 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         }
     }
 
+    /**
+     * Initialise view components
+     */
     private void setUpView(View view) {
 
         mChecklistsTitleEt = (EditText) view.findViewById(R.id.checklistsTitle);
         mNotesImage = (ImageView) view.findViewById(R.id.notesImage);
     }
 
+    /**
+     * Display data in view components
+     */
     private void displayData() {
 
+        // check checklistsData to avoid NullPointerException for a new Note
         if (checklistsData != null) {
 
             mChecklistsTitleEt.setText(checklistsData.getNotesTitle());
-
-            for (int i = 0 ; i < checklistsData.getContent().size() ; i++) {
-
-                dataList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("value"));
-                statusList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get("status"));
-            }
 
             if (checklistsData.getImageUri() != null) {
 
@@ -375,6 +329,12 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                 Picasso.with(getActivity())
                         .load(checklistsData.getImageUri())
                         .into(mNotesImage);
+            }
+
+            for (int i = 0 ; i < checklistsData.getContent().size() ; i++) {
+
+                dataList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get(Constants.HASHMAP_VALUE));
+                statusList.add(checklistsData.getContent().get("content_0" + String.valueOf(i + 1)).get(Constants.HASHMAP_STATUS));
             }
         }
     }
@@ -388,7 +348,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
         String currentUser = firebaseAuthorisation.getCurrentUser();
 
-        mDatabase.child(currentUser).child("Notes").addValueEventListener(new ValueEventListener() {
+        mDatabase.child(currentUser).child(Constants.TYPE_NOTES).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 

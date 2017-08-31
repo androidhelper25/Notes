@@ -20,6 +20,8 @@ import com.example.sarthak.notes.fragments.TakeNoteRemindersFragment;
 import com.example.sarthak.notes.fragments.TakeNotesFragment;
 import com.example.sarthak.notes.utils.SetImageListener;
 
+import java.io.Serializable;
+
 public class NotesActivity extends AppCompatActivity implements View.OnClickListener {
 
     Bundle dataBundle = new Bundle();
@@ -27,6 +29,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
     boolean isFABOpen = false;
 
     int notesPosition;
+    Object notesData;
 
     String notesType;
 
@@ -40,17 +43,21 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes);
 
+        // set up toolbar
         setUpToolbar();
 
-        notesType = getIntent().getStringExtra("type");
+        notesType = getIntent().getStringExtra(Constants.INTENT_PASS_NOTES_TYPE);
         notesPosition = getIntent().getIntExtra("position", 0);
+        notesData = getIntent().getSerializableExtra(Constants.INTENT_PASS_SERIALIZABLE_OBJECT);
 
+        // set up view components
         setUpView();
 
+        // launch fragment view
         launchFragment();
 
         //------------------------------------------------------------------------------------
-        // onClick listeners for Floating Buttons
+        // onClick listeners for floating buttons
         //------------------------------------------------------------------------------------
         fabAddCity.setOnClickListener(this);
         fabCamera.setOnClickListener(this);
@@ -59,18 +66,21 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onBackPressed() {
-        if(!isFABOpen){
+        if(!isFABOpen) {
 
             super.onBackPressed();
             backButtonListener.backButtonPressed();
         }
 
-        // call closeFABMenu() to hide floating action buttons, if visible.
-        else{
+        else {
+            // call closeFABMenu() to hide floating action buttons, if visible
             closeFABMenu();
         }
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Callback for action bar back button
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -85,6 +95,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         return true;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // onClick listener's callback
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view) {
 
@@ -105,6 +118,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
                 if (takePicture.resolveActivity(getPackageManager()) != null) {
+
                     startActivityForResult(takePicture, Constants.CAMERA_REQUEST);
                 }
                 break;
@@ -117,7 +131,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
 
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), Constants.PICK_IMAGE);
+                startActivityForResult(Intent.createChooser(intent, getString(R.string.gallery_dialog_title)), Constants.PICK_IMAGE);
                 break;
         }
     }
@@ -130,10 +144,14 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
 
             if (requestCode == Constants.PICK_IMAGE && null != data) {
 
+                // onClick listener for setting image
+                // callback in respective fragment in which the image is to be set
                 setImageListener.setImage(data.getData());
 
             } else if (requestCode == Constants.CAMERA_REQUEST) {
 
+                // onClick listener for setting image
+                // callback in respective fragment in which the image is to be set
                 setImageListener.setImage(data.getData());
             }
         }
@@ -154,6 +172,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         fabGallery.animate().translationY(0);
     }
 
+    /**
+     * Set up toolbar
+     */
     private void setUpToolbar() {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.notes_toolbar);
@@ -164,6 +185,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     * Initialise view components
+     */
     private void setUpView() {
 
         fabAddCity = (FloatingActionButton) findViewById(R.id.fabAddCity);
@@ -171,16 +195,28 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         fabGallery = (FloatingActionButton) findViewById(R.id.fabGallery);
     }
 
+    /**
+     * Launch fragment based on the value of 'notesType' retrieved from HomeScreenActivity
+     *
+     * Pass 'notesPosition' and 'notesData' to the fragment.
+     *
+     * notesPosition identifies the position of the existing Note in the recyclerView to view
+     * its contents or edit them.
+     * notesData stores the data of that particular Note.
+     */
     private void launchFragment() {
 
         switch (notesType) {
+
             case Constants.INTENT_PASS_NOTES: {
 
                 Fragment takeNotesFragment = new TakeNotesFragment();
-                dataBundle.putInt("position", notesPosition);
-                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                // pass data to fragment via bundle
+                dataBundle.putInt(Constants.INTENT_PASS_POSITION, notesPosition);
+                dataBundle.putSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Serializable) notesData);
                 takeNotesFragment.setArguments(dataBundle);
 
+                // launch fragment
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeNotesFragment);
                 notesFragmentTransaction.commit();
@@ -189,10 +225,12 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
             case Constants.INTENT_PASS_NOTE_REMINDERS: {
 
                 Fragment takeNoteRemindersFragment = new TakeNoteRemindersFragment();
-                dataBundle.putInt("position", notesPosition);
-                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                // pass data to fragment via bundle
+                dataBundle.putInt(Constants.INTENT_PASS_POSITION, notesPosition);
+                dataBundle.putSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Serializable) notesData);
                 takeNoteRemindersFragment.setArguments(dataBundle);
 
+                // launch fragment
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeNoteRemindersFragment);
                 notesFragmentTransaction.commit();
@@ -201,10 +239,12 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
             case Constants.INTENT_PASS_CHECKLISTS: {
 
                 Fragment takeChecklistsFragment = new TakeChecklistsFragment();
-                dataBundle.putInt("position", notesPosition);
-                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                // pass data to fragment via bundle
+                dataBundle.putInt(Constants.INTENT_PASS_POSITION, notesPosition);
+                dataBundle.putSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Serializable) notesData);
                 takeChecklistsFragment.setArguments(dataBundle);
 
+                // launch fragment
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeChecklistsFragment);
                 notesFragmentTransaction.commit();
@@ -213,10 +253,12 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
             case Constants.INTENT_PASS_CHECKLIST_REMINDERS: {
 
                 Fragment takeChecklistRemindersFragment = new TakeChecklistRemindersFragment();
-                dataBundle.putInt("position", notesPosition);
-                dataBundle.putSerializable("notes", getIntent().getSerializableExtra("notes"));
+                // pass data to fragment via bundle
+                dataBundle.putInt(Constants.INTENT_PASS_POSITION, notesPosition);
+                dataBundle.putSerializable(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Serializable) notesData);
                 takeChecklistRemindersFragment.setArguments(dataBundle);
 
+                // launch fragment
                 FragmentTransaction notesFragmentTransaction = getSupportFragmentManager().beginTransaction();
                 notesFragmentTransaction.replace(R.id.notes_frame, takeChecklistRemindersFragment);
                 notesFragmentTransaction.commit();
