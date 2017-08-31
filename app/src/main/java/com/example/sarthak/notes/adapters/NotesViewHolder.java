@@ -21,6 +21,11 @@ class NotesViewHolder extends RecyclerView.ViewHolder{
         this.mNotesBodyTv = (TextView) itemView.findViewById(R.id.cardBodyTv);
     }
 
+    /**
+     * Display data from model 'notes' in view components
+     *
+     * @param notes is notes data stored as a model object
+     */
     void bindData(Notes notes) {
 
         mNotesTitleTv.setText(notes.getNotesTitle());

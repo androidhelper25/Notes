@@ -40,6 +40,7 @@ public class ViewChecklistsRecyclerAdapter extends RecyclerView.Adapter<ViewChec
     @Override
     public void onBindViewHolder(ViewChecklistsViewHolder holder, int position) {
 
+        // bind data to view holder
         holder.bindData(dataMap.get("content_0" + String.valueOf(position + 1)), checklistType, mContext);
     }
 

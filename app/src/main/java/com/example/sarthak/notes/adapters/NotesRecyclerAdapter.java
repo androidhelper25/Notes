@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.example.sarthak.notes.models.Checklists;
 import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.R;
+import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -39,7 +40,8 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.notesList = notesList;
         this.noteType = typeOfNote;
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        // set up an instance of firebase database
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE);
     }
 
     public void setOnRecyclerViewItemClickListener(NotesRecyclerViewItemClickListener onNotesRecyclerViewItemClickListener) {
@@ -50,10 +52,10 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
     @Override
     public int getItemViewType(int position) {
 
-        if (noteType.get(position).equals("Notes")) {
+        if (noteType.get(position).equals(Constants.TYPE_NOTES)) {
 
             return NOTES;
-        } else if (noteType.get(position).equals("Checklists")) {
+        } else if (noteType.get(position).equals(Constants.TYPE_CHECKLISTS)) {
 
             return CHECKLISTS;
         }
@@ -85,7 +87,7 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
 
         switch (holder.getItemViewType()) {
 
@@ -99,7 +101,9 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
                     @Override
                     public void onClick(View view) {
 
-                        onNotesRecyclerViewItemClickListener.onClick(view, position);
+                        // set up listener for recycler view item click
+                        // callback in NotesFragment
+                        onNotesRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
                     }
                 });
                 break;
@@ -114,7 +118,9 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
                     @Override
                     public void onClick(View view) {
 
-                        onNotesRecyclerViewItemClickListener.onClick(view, position);
+                        // set up listener for recycler view item click
+                        // callback in NotesFragment
+                        onNotesRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
                     }
                 });
                 break;

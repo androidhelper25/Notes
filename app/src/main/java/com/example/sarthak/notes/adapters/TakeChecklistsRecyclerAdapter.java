@@ -12,6 +12,7 @@ import android.widget.CompoundButton;
 
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.utils.CheckListListener;
+import com.example.sarthak.notes.utils.Constants;
 
 import java.util.ArrayList;
 
@@ -51,16 +52,20 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
     @Override
     public void onBindViewHolder(final TakeChecklistsViewHolder holder, int position) {
 
+        // If position is less than the size of arraylist, bind data from arraylist to view holder.
+        // Else bind specified data to view holder for showing an extra view to enter data.
         if (position < checklistList.size()) {
 
-            Log.e("poa", String.valueOf(position));
             holder.bindData(mContext, checklistList.get(holder.getAdapterPosition()), statusList.get(holder.getAdapterPosition()));
         } else {
 
             holder.mDataEt.requestFocus();
-            holder.bindData(mContext, "", "unchecked");
+            holder.bindData(mContext, "", Constants.UNCHECKED_STATUS);
         }
 
+        // editText enter key pressed listener
+        // Instantiate a callback in TakeChecklists and TakeChecklistReminders fragment.
+        // Update value of 'dataList' and 'statusList' arraylist in the fragments.
         holder.mDataEt.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int id, KeyEvent keyEvent) {
@@ -81,9 +86,9 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
                         } else if (checklistListenerContext.equals("checklistReminders")) {
 
                             if (holder.mCheckBox.isChecked()) {
-                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "checked");
+                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "checked", holder.getAdapterPosition());
                             } else {
-                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "unchecked");
+                                checkListListener.checklistReminderEnterKeyPressed(dataItem, "unchecked", holder.getAdapterPosition());
                             }}
                     }
                 }
@@ -92,6 +97,9 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
             }
         });
 
+        // checkBox onChecked listener
+        // Instantiate a callback in TakeChecklists and TakeChecklistReminders fragment.
+        // Update value of 'statusList' arraylist in the fragments.
         holder.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
@@ -109,6 +117,9 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
             }
         });
 
+        // 'delete' Button onClick listener
+        // Instantiate a callback in TakeChecklists and TakeChecklistReminders fragment.
+        // Update value of 'dataList' and 'statusList' arraylist in the fragments.
         holder.mDeleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

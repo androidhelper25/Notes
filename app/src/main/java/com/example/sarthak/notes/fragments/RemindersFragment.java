@@ -71,7 +71,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
     }
 
     //----------------------------------------------------------------------------------------------
-    // Callback to recyclerView item click
+    // Callback to recyclerView item click from RemindersRecyclerAdapter
     //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view, int position) {

@@ -70,7 +70,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
     }
 
     //----------------------------------------------------------------------------------------------
-    // Callback to recyclerView item click
+    // Callback to recyclerView item click from NotesRecyclerAdapter
     //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view, int position) {

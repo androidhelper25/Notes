@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.models.ChecklistReminders;
 import com.example.sarthak.notes.models.NoteReminders;
+import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.RemindersRecyclerViewItemClickListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -39,7 +40,8 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
         this.remindersList = remindersList;
         this.noteType = typeOfNote;
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        // set up an instance of firebase database
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE);
 
     }
 
@@ -51,10 +53,10 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
     @Override
     public int getItemViewType(int position) {
 
-        if (noteType.get(position).equals("Notes")) {
+        if (noteType.get(position).equals(Constants.TYPE_NOTES)) {
 
             return NOTES;
-        } else if (noteType.get(position).equals("Checklists")) {
+        } else if (noteType.get(position).equals(Constants.TYPE_CHECKLISTS)) {
 
             return CHECKLISTS;
         }
@@ -100,6 +102,8 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                     @Override
                     public void onClick(View view) {
 
+                        // set up listener for recycler view item click
+                        // callback in RemindersFragment
                         onRemindersRecyclerViewItemClickListener.onClick(view , holder.getAdapterPosition());
                     }
                 });
@@ -115,6 +119,8 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                     @Override
                     public void onClick(View view) {
 
+                        // set up listener for recycler view item click
+                        // callback in RemindersFragment
                         onRemindersRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
                     }
                 });

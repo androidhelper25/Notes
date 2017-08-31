@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.fragments.TakeChecklistsFragment;
 import com.example.sarthak.notes.utils.CheckListListener;
+import com.example.sarthak.notes.utils.Constants;
 
 public class TakeChecklistsViewHolder extends RecyclerView.ViewHolder{
 
@@ -21,8 +22,6 @@ public class TakeChecklistsViewHolder extends RecyclerView.ViewHolder{
     EditText mDataEt;
     ImageButton mDeleteButton;
 
-    CheckListListener checkListListener;
-
     public TakeChecklistsViewHolder(View itemView) {
         super(itemView);
 
@@ -30,15 +29,19 @@ public class TakeChecklistsViewHolder extends RecyclerView.ViewHolder{
         mCheckBox = (CheckBox) itemView.findViewById(R.id.checklist_checkbox);
         mDataEt = (EditText) itemView.findViewById(R.id.checklist_data);
         mDeleteButton = (ImageButton) itemView.findViewById(R.id.checklist_delete);
-
-        checkListListener = new TakeChecklistsFragment();
     }
 
+    /**
+     * Bind data to view components
+     * @param context is the context of the activity
+     * @param value is the value of each item in 'dataList' arraylist
+     * @param status is the value of each item in 'statusList' arraylist
+     */
     public void bindData(Context context, String value, String status) {
 
         mDataEt.setText(value);
 
-        if (status.equals("checked")) {
+        if (status.equals(Constants.CHECKED_STATUS)) {
 
             mCheckBox.setChecked(true);
             mDataEt.setTextColor(ContextCompat.getColor(context, R.color.colorDividerLine));

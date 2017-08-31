@@ -22,14 +22,24 @@ public class NoteRemindersViewHolder extends RecyclerView.ViewHolder {
         this.mNotesReminderTv = (TextView) itemView.findViewById(R.id.cardReminderTv);
     }
 
+    /**
+     * Display data from model 'NoteReminders' in view components
+     *
+     * @param reminders is noteReminders data stored as a model object
+     */
     void bindData(NoteReminders reminders) {
 
+        // set notesTitle to 'Title' text view
         if (reminders.getNotesTitle().equals("")) {
             mNotesTitleTv.setHeight(0);
         } else {
             mNotesTitleTv.setText(reminders.getNotesTitle());
         }
+
+        // set notesBody to 'Body' text view
         mNotesBodyTv.setText(reminders.getNotesBody());
+
+        // set reminder date to 'Reminder' textView
         mNotesReminderTv.setText(reminders.getNoteReminderDate() + "/" +
                                  reminders.getNoteReminderMonth() + "/" +
                                  reminders.getNoteReminderYear() + ", " +
