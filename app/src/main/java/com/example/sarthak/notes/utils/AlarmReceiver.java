@@ -1,32 +1,31 @@
 package com.example.sarthak.notes.utils;
 
-import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.util.Log;
-import android.widget.Toast;
+
+/**
+ * Broadcast receiver called by AlarmManager at time specified in the Note.
+ */
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        //this will sound the alarm tone
-        //this will sound the alarm once, if you wish to
-        //raise alarm in loop continuously then use MediaPlayer and setLooping(true)
-        Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
-        Log.e(String.valueOf(alarmUri), String.valueOf(ringtone));
+        String notificationData = intent.getStringExtra(Constants.INTENT_PASS_NOTIFICATION_MESSAGE);
+
+        // set ringtone
+        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Ringtone ringtone = RingtoneManager.getRingtone(context, ringtoneUri);
         ringtone.play();
 
-        //this will send a notification message
-        ComponentName comp = new ComponentName(context.getPackageName(), AlarmService.class.getName());
-        startWakefulService(context, (intent.setComponent(comp)));
-        setResultCode(Activity.RESULT_OK);
+        // launch AlarmService to set notification
+        Intent notificationService = new Intent(context, AlarmService.class);
+        notificationService.putExtra(Constants.INTENT_PASS_NOTIFICATION_MESSAGE, notificationData);
+        startWakefulService(context, notificationService);
     }
 }

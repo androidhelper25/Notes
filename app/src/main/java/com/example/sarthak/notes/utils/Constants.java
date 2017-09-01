@@ -19,6 +19,8 @@ public class Constants {
 
     public static final String INTENT_PASS_SERIALIZABLE_OBJECT = "notes_serializable";
 
+    public static final String INTENT_PASS_NOTIFICATION_MESSAGE = "notification_message";
+
     //----------------------------------------------------------------------------------------------
     // Camera and gallery requests
     //----------------------------------------------------------------------------------------------
@@ -49,6 +51,8 @@ public class Constants {
 
     public static final String HASHMAP_STATUS = "status";
 
-    // Others
+    //----------------------------------------------------------------------------------------------
+    // Database reference key
+    //----------------------------------------------------------------------------------------------
     public static final String USERS_REFERENCE = "Users";
 }

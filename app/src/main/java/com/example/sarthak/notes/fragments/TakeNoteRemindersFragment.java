@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -81,6 +82,8 @@ public class TakeNoteRemindersFragment extends Fragment implements
     private DatePickerDialog datePickerDialog;
     private TimePickerDialog timePickerDialog;
 
+    private FragmentActivity mActivity;
+
     DatabaseReference mDatabase;
     StorageReference mStorage;
 
@@ -128,6 +131,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
     public void onAttach(Context context) {
         super.onAttach(context);
 
+        mActivity = (FragmentActivity) context;
         // callback for back button pressed in fragment
         ((NotesActivity) context).backButtonListener = this;
         // callback for setting image in fragment
@@ -144,9 +148,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
             case R.id.buttonAlarm:
 
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(mActivity);
 
-                LayoutInflater inflater = LayoutInflater.from(getActivity());
+                LayoutInflater inflater = LayoutInflater.from(mActivity);
                 // set view group as null
                 final ViewGroup nullParent = null;
 
@@ -325,7 +329,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                 noteReminderMinute = String.valueOf(minute);
             } else {
 
-                Toast.makeText(getActivity(), R.string.invalid_time_toast, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mActivity, R.string.invalid_time_toast, Toast.LENGTH_SHORT).show();
                 // set alarm for after 1 hour as default
                 noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
                 noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
@@ -344,7 +348,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
     public void setImage(Uri uri) {
 
         this.notesImageUri = uri;
-        Picasso.with(getActivity())
+        Picasso.with(mActivity)
                 .load(uri)
                 .into(mNotesImage);
     }
@@ -358,10 +362,10 @@ public class TakeNoteRemindersFragment extends Fragment implements
         final DatabaseReference notesDatabase;
         final StorageReference imageStorage;
 
-        final FirebaseUploadDataManager firebaseUploadDataManager = new FirebaseUploadDataManager(getActivity());
+        final FirebaseUploadDataManager firebaseUploadDataManager = new FirebaseUploadDataManager(mActivity);
 
         // get current user
-        FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(getActivity());
+        FirebaseAuthorisation firebaseAuth = new FirebaseAuthorisation(mActivity);
         String currentUser = firebaseAuth.getCurrentUser();
 
         // set up an instance for firebase database
@@ -448,7 +452,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
      */
     private void setUpDatePicker() {
 
-        datePickerDialog = new DatePickerDialog(getActivity(), this,
+        datePickerDialog = new DatePickerDialog(mActivity, this,
                 Calendar.getInstance().get(Calendar.YEAR),
                 Calendar.getInstance().get(Calendar.MONTH),
                 Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
@@ -458,7 +462,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
     private void setUpTimePicker() {
 
-        timePickerDialog = new TimePickerDialog(getActivity(), this,
+        timePickerDialog = new TimePickerDialog(mActivity, this,
                 Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
                 Calendar.getInstance().get(Calendar.MINUTE), true);
         timePickerDialog.show();
@@ -470,7 +474,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
     private void setUpDateTimeSpinner(View dialogView) {
 
         daySpinner = (Spinner) dialogView.findViewById(R.id.daySpinner);
-        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, dayArray);
+        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(mActivity, android.R.layout.simple_spinner_item, dayArray);
 
         dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         daySpinner.setSelection(2);
@@ -478,7 +482,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
         daySpinner.setOnItemSelectedListener(this);
 
         timeSpinner = (Spinner) dialogView.findViewById(R.id.timeSpinner);
-        ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, timeArray);
+        ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(mActivity, android.R.layout.simple_spinner_item, timeArray);
 
         timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeSpinner.setSelection(1);
@@ -510,13 +514,15 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
         if (setAlarm.compareTo(current) > 0) {
 
-            if (getActivity() != null) {
-
-                Intent intent = new Intent(getActivity(), AlarmReceiver.class);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
-                AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-                alarmManager.set(AlarmManager.RTC_WAKEUP, setAlarm.getTimeInMillis(), pendingIntent);
+            Intent intent = new Intent(mActivity, AlarmReceiver.class);
+            if (!notesTitle.equals("")) {
+                intent.putExtra(Constants.INTENT_PASS_NOTIFICATION_MESSAGE, notesTitle);
+            } else {
+                intent.putExtra(Constants.INTENT_PASS_NOTIFICATION_MESSAGE, notesBody);
             }
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 0, intent, 0);
+            AlarmManager alarmManager = (AlarmManager) mActivity.getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, setAlarm.getTimeInMillis(), pendingIntent);
         }
     }
 
@@ -540,7 +546,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
             if (noteRemindersData.getImageUri() != null) {
 
                 this.notesImageUri = Uri.parse(noteRemindersData.getImageUri());
-                Picasso.with(getActivity())
+                Picasso.with(mActivity)
                         .load(noteRemindersData.getImageUri())
                         .into(mNotesImage);
             }
@@ -559,7 +565,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
      */
     private void getNoteRemindersCount() {
 
-        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
+        FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(mActivity);
 
         String currentUser = firebaseAuthorisation.getCurrentUser();
 
