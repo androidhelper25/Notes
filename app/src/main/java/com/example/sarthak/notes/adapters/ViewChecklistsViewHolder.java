@@ -63,6 +63,9 @@ public class ViewChecklistsViewHolder extends RecyclerView.ViewHolder {
 
     /**
      * Initialise view components
+     *
+     * Since ViewChecklistsViewHolder uses the same layout as TakeChecklistsViewHolder,
+     * dynamic formatting of view components has been done.
      */
     private void setUpView(View itemView) {
 

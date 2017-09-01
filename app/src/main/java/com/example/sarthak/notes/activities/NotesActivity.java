@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -205,7 +204,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
      *
      * notesPosition identifies the position of the existing Note in the recyclerView to view
      * its contents or edit them.
-     * notesData stores the data of that particular Note.
+     * notesData contains the data of that particular Note.
      */
     private void launchFragment() {
 

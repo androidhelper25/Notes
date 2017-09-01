@@ -33,6 +33,7 @@ public class TakeChecklistsViewHolder extends RecyclerView.ViewHolder{
 
     /**
      * Bind data to view components
+     *
      * @param context is the context of the activity
      * @param value is the value of each item in 'dataList' arraylist
      * @param status is the value of each item in 'statusList' arraylist

@@ -4,18 +4,12 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -26,7 +20,7 @@ import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.utils.Constants;
 import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
-import com.example.sarthak.notes.adapters.NotesRecyclerAdapter;
+import com.example.sarthak.notes.adapters.NotesFragmentRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,7 +37,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
 
     private ProgressDialog progressDialog;
 
-    private NotesRecyclerAdapter notesRecyclerAdapter;
+    private NotesFragmentRecyclerAdapter notesFragmentRecyclerAdapter;
 
     DatabaseReference mDatabase;
 
@@ -61,23 +55,24 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
         // set up progress dialog
         setUpProgressDialog();
 
+        // read 'Notes' data from firebase database
         readNotesFromFirebase();
 
         RecyclerView mNotesList = (RecyclerView) view.findViewById(R.id.notesList);
-        notesRecyclerAdapter = new NotesRecyclerAdapter(getActivity(), notesList, typeOfNote);
-        notesRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
+        notesFragmentRecyclerAdapter = new NotesFragmentRecyclerAdapter(getActivity(), notesList, typeOfNote);
+        notesFragmentRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
         // set grid layout with 2 columns
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2);
         mNotesList.setLayoutManager(mLayoutManager);
         mNotesList.setItemAnimator(new DefaultItemAnimator());
-        mNotesList.setAdapter(notesRecyclerAdapter);
+        mNotesList.setAdapter(notesFragmentRecyclerAdapter);
 
         return view;
     }
 
     //----------------------------------------------------------------------------------------------
-    // Callback to recyclerView item click from NotesRecyclerAdapter
+    // Callback to recyclerView item click from NotesFragmentRecyclerAdapter
     //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view, int position) {
@@ -104,6 +99,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
     @Override
     public void onLongClick(View view, int position) {
 
+        //remove item from firebase database
         removeNotesFromList(position);
     }
 
@@ -122,7 +118,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
      * Read firebase database and store values of notes as an Object arraylist.
      *
      * Since notesBody is a key that will be specified only for Notes and not for Checklists,
-     * a check for the same is made and data is added to 'notesList' as 'Notes' if notesBody
+     * a check for the same is made and data is added to notesList as 'Notes' if notesBody
      * is not null and as 'Checklists' if it is null.
      *
      * To maintain a track of the type of note that is added to notesList, a string value
@@ -160,7 +156,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
                                 typeOfNote.add(Constants.TYPE_CHECKLISTS);
                             }
                             // update recycler view adapter
-                            notesRecyclerAdapter.notifyDataSetChanged();
+                            notesFragmentRecyclerAdapter.notifyDataSetChanged();
                         }
                     }
                     // dismiss progress dialog
@@ -170,7 +166,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     // update recycler view adapter
-                    notesRecyclerAdapter.notifyDataSetChanged();
+                    notesFragmentRecyclerAdapter.notifyDataSetChanged();
                 }
             });
         } else {
@@ -201,7 +197,12 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
                 .show();
     }
 
-
+    /**
+     * Removes Note at specified from position from firebase database.
+     * Updates index of notes following the deleted item in the firebase database.
+     *
+     * @param position is the position of the item to be deleted in firebase database
+     */
     private void removeNotes(int position) {
 
         final int notePosition = position + 1;

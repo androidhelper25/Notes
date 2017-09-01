@@ -18,7 +18,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,6 +70,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     String checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
     String checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
 
+    // since TakeChecklistsRecyclerAdapter is used by both TakeChecklistsFragment and TakeChecklistRemindersFragment,
+    // checklistListenerContext is used to distinguish between the onClick listeners of the two fragments.
+    // It is passed as an argument to TakeChecklistsAdapter.
     String checklistListenerContext = "checklistReminders";
 
     int count, notesPosition;
@@ -386,6 +388,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     public void onDateSet(DatePicker datePicker, int year, int month, int date) {
 
         checklistReminderYear = String.valueOf(year);
+        // since date index in calendar starts from 0
         checklistReminderMonth = String.valueOf(month + 1);
         checklistReminderDate = String.valueOf(date);
     }
@@ -511,6 +514,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
                         if (task.isSuccessful()) {
 
+                            // set alarm at specified time
                             setAlarm(calendar);
                             // upload image to firebase storage and set value in firebase database
                             firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
@@ -525,7 +529,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
-
+                            // set alarm at specified time
                             setAlarm(calendar);
                         }
                     }
@@ -608,6 +612,11 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         return setAlarm;
     }
 
+    /**
+     * Set up alarm at specified time
+     *
+     * @param cal is the calendar object at which the alarm is to be set
+     */
     private void setAlarm(Calendar cal) {
 
         Calendar current = Calendar.getInstance();

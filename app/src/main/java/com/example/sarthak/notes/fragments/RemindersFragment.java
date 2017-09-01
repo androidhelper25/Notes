@@ -16,13 +16,12 @@ import android.view.ViewGroup;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.HomeScreenActivity;
 import com.example.sarthak.notes.activities.NotesActivity;
-import com.example.sarthak.notes.adapters.RemindersRecyclerAdapter;
+import com.example.sarthak.notes.adapters.RemindersFragmentRecyclerAdapter;
 import com.example.sarthak.notes.firebasemanager.FirebaseAuthorisation;
 import com.example.sarthak.notes.models.ChecklistReminders;
 import com.example.sarthak.notes.models.NoteReminders;
 import com.example.sarthak.notes.models.Notes;
 import com.example.sarthak.notes.utils.Constants;
-import com.example.sarthak.notes.utils.NotesRecyclerViewItemClickListener;
 import com.example.sarthak.notes.utils.RemindersRecyclerViewItemClickListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,7 +38,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
 
     private ProgressDialog progressDialog;
 
-    private RemindersRecyclerAdapter remindersRecyclerAdapter;
+    private RemindersFragmentRecyclerAdapter remindersFragmentRecyclerAdapter;
 
     DatabaseReference mDatabase;
 
@@ -57,23 +56,24 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
         // set up progress dialog
         setUpProgressDialog();
 
+        // read 'Reminders' data from firebase database
         readRemindersFromFirebase();
 
         RecyclerView mRemindersList = (RecyclerView) view.findViewById(R.id.remindersList);
-        remindersRecyclerAdapter = new RemindersRecyclerAdapter(getActivity(), remindersList, typeOfNote);
-        remindersRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
+        remindersFragmentRecyclerAdapter = new RemindersFragmentRecyclerAdapter(getActivity(), remindersList, typeOfNote);
+        remindersFragmentRecyclerAdapter.setOnRecyclerViewItemClickListener(this);
 
         // set grid layout with 2 columns
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2);
         mRemindersList.setLayoutManager(mLayoutManager);
         mRemindersList.setItemAnimator(new DefaultItemAnimator());
-        mRemindersList.setAdapter(remindersRecyclerAdapter);
+        mRemindersList.setAdapter(remindersFragmentRecyclerAdapter);
 
         return view;
     }
 
     //----------------------------------------------------------------------------------------------
-    // Callback to recyclerView item click from RemindersRecyclerAdapter
+    // Callback to recyclerView item click from RemindersFragmentRecyclerAdapter
     //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view, int position) {
@@ -99,6 +99,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
     @Override
     public void onLongClick(View view, int position) {
 
+        // remove item from firebase database
         removeRemindersFromList(position);
     }
 
@@ -117,7 +118,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
      * Read firebase database and store values of notes as an arraylist object.
      *
      * Since notesBody is a key that will be specified only for Notes and not for Checklists,
-     * a check for the same is made and data is added to 'remindersList' as 'NoteReminders' if
+     * a check for the same is made and data is added to remindersList as 'NoteReminders' if
      * notesBody is not null and as 'ChecklistReminders' if it is null.
      *
      * To maintain a track of the type of note that is added to notesList, a string value
@@ -155,7 +156,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
                                 typeOfNote.add(Constants.TYPE_CHECKLISTS);
                             }
                             // update recycler view adapter
-                            remindersRecyclerAdapter.notifyDataSetChanged();
+                            remindersFragmentRecyclerAdapter.notifyDataSetChanged();
                         }
                     }
                     // dismiss progress dialog
@@ -165,7 +166,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     // update recycler view adapter
-                    remindersRecyclerAdapter.notifyDataSetChanged();
+                    remindersFragmentRecyclerAdapter.notifyDataSetChanged();
                 }
             });
         } else {
@@ -197,6 +198,12 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
     }
 
 
+    /**
+     * Removes Note at specified from position from firebase database.
+     * Updates index of notes following the deleted item in the firebase database.
+     *
+     * @param position is the position of the item to be deleted in firebase database
+     */
     private void removeReminders(int position) {
 
         final int notePosition = position + 1;

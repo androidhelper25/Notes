@@ -12,6 +12,9 @@ import com.example.sarthak.notes.models.Checklists;
 
 public class ChecklistsViewHolder extends RecyclerView.ViewHolder {
 
+    // since ViewChecklistsViewHolder is used by both ChecklistsViewHolder and ChecklistRemindersViewHolder,
+    // checklistType is used to distinguish between the two.
+    // It is passed as an argument to ViewChecklistsAdapter.
     String checklistType = "Checklists";
 
     View itemView;

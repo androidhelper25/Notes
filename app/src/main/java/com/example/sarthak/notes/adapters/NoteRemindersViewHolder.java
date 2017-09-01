@@ -41,12 +41,15 @@ public class NoteRemindersViewHolder extends RecyclerView.ViewHolder {
         // set notesBody to 'Body' text view
         mNotesBodyTv.setText(reminders.getNotesBody());
 
+        // display minute with 0 if minute is less than 10
+        // done to enhance UI
         if (Integer.parseInt(reminders.getNoteReminderMinute()) < 10) {
             updatedMinute = "0" + reminders.getNoteReminderMinute();
         } else {
             updatedMinute = reminders.getNoteReminderMinute();
         }
-
+        // display hour with 0 if hour is less than 10
+        // done to enhance UI
         if (Integer.parseInt(reminders.getNoteReminderHour()) < 10) {
             updatedHour = "0" + reminders.getNoteReminderHour();
         } else {

@@ -91,7 +91,7 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
     }
 
     /**
-     * Launch Home Activity
+     * Launch HomeScreenActivity
      */
     private void launchActivity() {
 

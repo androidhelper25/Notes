@@ -33,9 +33,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeScreenActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
+    // default value of noteType to launch NotesFragment
     String noteType = Constants.TYPE_NOTES;
-
-    NavigationView navigationView;
 
     // navigation view components
     CircleImageView profileImage;
@@ -45,6 +44,8 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     ImageButton buttonChecklist;
     TextView takeNote;
 
+    NavigationView navigationView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +53,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // initialise all view components
+        // set up view components
         setUpView();
 
         // launch default fragment as 'Notes' category
@@ -70,9 +71,9 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         // update navigation view with Google account details
         setUpNavigationView();
 
-        //------------------------------------------------------------------------------------
-        // on click listeners
-        //------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------
+        // onClick listeners
+        //------------------------------------------------------------------------------------------
         takeNote.setOnClickListener(this);
         buttonChecklist.setOnClickListener(this);
     }
@@ -81,6 +82,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     public void onBackPressed() {
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -97,7 +99,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         // launch Notes activity
         Intent notesIntent = new Intent(HomeScreenActivity.this, NotesActivity.class);
 
-        // check for the value of 'noteType' and launch the fragment accordingly
+        // check for the value of 'noteType' and launch corresponding fragment
         switch (view.getId()) {
 
             case R.id.textViewNotes :
@@ -171,7 +173,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     }
 
     /**
-     * Launch 'Notes' fragment
+     * Launch NotesFragment in activity
      */
     public void launchNotesFragment() {
 
@@ -183,7 +185,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     }
 
     /**
-     * Launch 'Reminders' fragment
+     * Launch RemindersFragment in activity
      */
     private void launchReminderFragment() {
 
@@ -209,7 +211,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         profileEmail = (TextView) header.findViewById(R.id.nav_profile_email);
 
         // set up an instance of firebase database
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser);
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE).child(currentUser);
 
         // retrieve user details and set up in view components
         mDatabase.addValueEventListener(new ValueEventListener() {

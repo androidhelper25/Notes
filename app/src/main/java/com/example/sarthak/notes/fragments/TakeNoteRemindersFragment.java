@@ -132,6 +132,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
         super.onAttach(context);
 
         mActivity = (FragmentActivity) context;
+
         // callback for back button pressed in fragment
         ((NotesActivity) context).backButtonListener = this;
         // callback for setting image in fragment
@@ -302,6 +303,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
     public void onDateSet(DatePicker datePicker, int year, int month, int date) {
 
         noteReminderYear = String.valueOf(year);
+        // since date index of calendar starts from 0.
         noteReminderMonth = String.valueOf(month + 1);
         noteReminderDate = String.valueOf(date);
     }
@@ -414,7 +416,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                         if (task.isSuccessful()) {
 
+                            // set alarm at specified time
                             setAlarm(calendar);
+                            // upload image to firebase storage and set value in firebase database
                             firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
                         }
                     }
@@ -427,7 +431,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
-
+                            // set alarm at specified time
                             setAlarm(calendar);
                         }
                     }
@@ -448,7 +452,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
     }
 
     /**
-     * Set up date and time picker dialog
+     * Set up date picker dialog
      */
     private void setUpDatePicker() {
 
@@ -460,6 +464,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
         datePickerDialog.show();
     }
 
+    /**
+     * Set up time picker dialog
+     */
     private void setUpTimePicker() {
 
         timePickerDialog = new TimePickerDialog(mActivity, this,
@@ -508,6 +515,11 @@ public class TakeNoteRemindersFragment extends Fragment implements
         return setAlarm;
     }
 
+    /**
+     * Set up alarm at specified time
+     *
+     * @param setAlarm is the calendar object at which the alarm is to be set
+     */
     private void setAlarm(Calendar setAlarm) {
 
         Calendar current = Calendar.getInstance();

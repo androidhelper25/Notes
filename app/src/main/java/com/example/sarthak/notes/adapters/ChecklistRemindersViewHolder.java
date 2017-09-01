@@ -12,6 +12,9 @@ import com.example.sarthak.notes.models.ChecklistReminders;
 
 public class ChecklistRemindersViewHolder extends RecyclerView.ViewHolder {
 
+    // since ViewChecklistsViewHolder is used by both ChecklistsViewHolder and ChecklistRemindersViewHolder,
+    // checklistType is used to distinguish between the two.
+    // It is passed as an argument to ViewChecklistsAdapter.
     String checklistType = "ChecklistReminders";
 
     String updatedMinute, updatedHour;
@@ -51,12 +54,15 @@ public class ChecklistRemindersViewHolder extends RecyclerView.ViewHolder {
             mTitleTv.setText(checklistReminders.getNotesTitle());
         }
 
+        // display minute with 0 if minute is less than 10
+        // done to enhance UI
         if (Integer.parseInt(checklistReminders.getNoteReminderMinute()) < 10) {
             updatedMinute = "0" + checklistReminders.getNoteReminderMinute();
         } else {
             updatedMinute = checklistReminders.getNoteReminderMinute();
         }
-
+        // display hour with 0 if hour is less than 10
+        // done to enhance UI
         if (Integer.parseInt(checklistReminders.getNoteReminderHour()) < 10) {
             updatedHour = "0" + checklistReminders.getNoteReminderHour();
         } else {
