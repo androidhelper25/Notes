@@ -2,7 +2,6 @@ package com.example.sarthak.notes.fragments;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -66,9 +65,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     String checklistRemindersTitle = "";
     String checklistReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
     String checklistReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-    String checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
-    String checklistReminderHour = String.valueOf(20);
-    String checklistReminderMinute = String.valueOf(0);
+    String checklistReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
+    String checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
+    String checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
 
     String checklistListenerContext = "checklistReminders";
 
@@ -122,8 +121,6 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         // set up view components
         setUpView(view);
-        // set up date and time picker
-        setUpDateTimePicker();
 
         // get total number of items in 'Reminders' in firebase database
         getRemindersCount();
@@ -157,6 +154,9 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         ((NotesActivity) context).setImageListener = this;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // button onClick listener
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view) {
 
@@ -182,7 +182,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,int id) {
 
-                                        // value for date and time are set in spinner's callback
+                                        // value for date and time are set in spinner's callback itself
                                         // no special action to be taken on positive button click
                                     }
                                 })
@@ -224,7 +224,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
             dataList.set(position, data);
             statusList.set(position, status);
         } else {
-            // add data to arraylist for values entered in checklist
+            // add data to arraylist for new values entered in checklist
             dataList.add(data);
             // add status for each item entered in checklist
             statusList.add(status);
@@ -249,6 +249,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
         checkboxStatus = status;
 
+        // set status of each item in arraylist based on value of checkbox
         if (position < statusList.size()) {
 
             if (status) {
@@ -271,12 +272,15 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     @Override
     public void checklistReminderDeleteButtonPressed(int position) {
 
-        // remove item at specified position from arraylist
-        dataList.remove(position);
-        // remove item at specified position from arraylist
-        statusList.remove(position);
-        // update recycler view adapter
-        takeChecklistsRecyclerAdapter.notifyDataSetChanged();
+        if (position < dataList.size()) {
+
+            // remove item at specified position from arraylist
+            dataList.remove(position);
+            // remove item at specified position from arraylist
+            statusList.remove(position);
+            // update recycler view adapter
+            takeChecklistsRecyclerAdapter.notifyDataSetChanged();
+        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -328,7 +332,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
                     case 2 :
 
-                        datePickerDialog.show();
+                        setUpDatePicker();
                         break;
                 }
                 break;
@@ -357,7 +361,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
                     case 3 :
 
-                        timePickerDialog.show();
+                        setUpTimePicker();
                         break;
                 }
                 break;
@@ -394,8 +398,8 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         // First compare if the date set is for today  or not. If not then no need to check time.
         // If yes, compare the current time with set time.
         if (daySpinner.getSelectedItemPosition() == 0 || (checklistReminderYear.equals(String.valueOf(Calendar.YEAR)) &&
-                checklistReminderMonth.equals(String.valueOf(Calendar.MONTH)) &&
-                checklistReminderDate.equals(String.valueOf(Calendar.DATE)))) {
+                                                          checklistReminderMonth.equals(String.valueOf(Calendar.MONTH)) &&
+                                                          checklistReminderDate.equals(String.valueOf(Calendar.DATE)))) {
 
             if(datetime.getTimeInMillis() > current.getTimeInMillis()){
 
@@ -403,7 +407,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                 checklistReminderMinute = String.valueOf(minute);
             } else {
 
-                Toast.makeText(getActivity(), "Invalid Time.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.invalid_time_toast, Toast.LENGTH_SHORT).show();
                 // set alarm for after 1 hour as default
                 checklistReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
                 checklistReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
@@ -443,7 +447,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
         final String currentUser = firebaseAuth.getCurrentUser();
 
         // set up an instance for firebase database
-        // if data is null, create new database reference. Else refer to existing database reference
+        // If data is null, create new database reference. Else refer to existing database reference.
         if (checklistRemindersData != null) {
 
             notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_REMINDERS)
@@ -501,7 +505,8 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
                         if (task.isSuccessful()) {
 
-                            //setAlarm(setAlarm);
+                            setAlarm(calendar);
+                            // upload image to firebase storage and set value in firebase database
                             firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
                         }
                     }
@@ -516,11 +521,6 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                         if (task.isSuccessful()) {
 
                             setAlarm(calendar);
-
-                            if (getActivity() != null) {
-
-                                Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
-                            }
                         }
                     }
                 });
@@ -539,19 +539,27 @@ public class TakeChecklistRemindersFragment extends Fragment implements
     }
 
     /**
-     * Set up date and time picker dialog
+     * Set up date picker dialog
      */
-    private void setUpDateTimePicker() {
+    private void setUpDatePicker() {
 
         datePickerDialog = new DatePickerDialog(getActivity(), this,
                 Calendar.getInstance().get(Calendar.YEAR),
                 Calendar.getInstance().get(Calendar.MONTH),
                 Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+
+    /**
+     * Set up time picker dialog
+     */
+    private void setUpTimePicker() {
 
         timePickerDialog = new TimePickerDialog(getActivity(), this,
                 Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
                 Calendar.getInstance().get(Calendar.MINUTE), true);
+        timePickerDialog.show();
     }
 
     /**
@@ -596,10 +604,18 @@ public class TakeChecklistRemindersFragment extends Fragment implements
 
     private void setAlarm(Calendar cal) {
 
-        Intent intent = new Intent(getActivity(), AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+        Calendar current = Calendar.getInstance();
+
+        if (cal.compareTo(current) > 0) {
+
+            if (getActivity() != null) {
+
+                Intent intent = new Intent(getActivity(), AlarmReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
+                AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+            }
+        }
     }
 
     /**
@@ -632,6 +648,7 @@ public class TakeChecklistRemindersFragment extends Fragment implements
                 statusList.add(checklistRemindersData.getContent().get("content_0" + String.valueOf(i + 1)).get(Constants.HASHMAP_STATUS));
             }
 
+            this.checklistRemindersTitle = checklistRemindersData.getNotesTitle();
             this.checklistReminderYear = checklistRemindersData.getNoteReminderYear();
             this.checklistReminderMonth = checklistRemindersData.getNoteReminderMonth();
             this.checklistReminderDate = checklistRemindersData.getNoteReminderDate();

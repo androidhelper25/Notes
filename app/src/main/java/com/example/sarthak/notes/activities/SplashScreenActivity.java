@@ -66,7 +66,7 @@ public class SplashScreenActivity extends AppCompatActivity implements GoogleApi
                 firebaseAuth.firebaseAuthWithGoogle(account, mProgressDialog);
             } else {
 
-                Toast.makeText(SplashScreenActivity.this, "Please try again.", Toast.LENGTH_LONG).show();
+                Toast.makeText(SplashScreenActivity.this, R.string.login_error_toast, Toast.LENGTH_LONG).show();
             }
         }
     }

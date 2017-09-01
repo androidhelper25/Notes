@@ -1,5 +1,12 @@
 package com.example.sarthak.notes.utils;
 
+/**
+ * Interface to handle various events in checklists.
+ *
+ * Events include enterKeyPressed for editText, checkBoxChecked for checkBox and
+ * deleteButtonPressed for 'Remove' imageButton for both checklists and checklistReminders.
+ */
+
 public interface CheckListListener {
 
     void checklistEnterKeyPressed(String data, String status, int position);

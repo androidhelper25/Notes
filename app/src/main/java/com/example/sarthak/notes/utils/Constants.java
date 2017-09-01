@@ -19,28 +19,36 @@ public class Constants {
 
     public static final String INTENT_PASS_SERIALIZABLE_OBJECT = "notes_serializable";
 
-    public static final String PREFS_NAME = "my_prefs";
-
-    //-----------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // Camera and gallery requests
-    //-----------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     public static final int CAMERA_REQUEST = 148;
 
     public static final int PICK_IMAGE = 235;
 
+    //----------------------------------------------------------------------------------------------
+    // Notes types
+    //----------------------------------------------------------------------------------------------
     public static final String TYPE_NOTES = "Notes";
 
     public static final String TYPE_REMINDERS = "Reminders";
 
     public static final String TYPE_CHECKLISTS = "Checklists";
 
-    public static final String USERS_REFERENCE = "Users";
-
+    //----------------------------------------------------------------------------------------------
+    // Checkbox status
+    //----------------------------------------------------------------------------------------------
     public static final String CHECKED_STATUS = "checked";
 
     public static final String UNCHECKED_STATUS = "unchecked";
 
+    //----------------------------------------------------------------------------------------------
+    // HashMap keys
+    //----------------------------------------------------------------------------------------------
     public static final String HASHMAP_VALUE = "value";
 
     public static final String HASHMAP_STATUS = "status";
+
+    // Others
+    public static final String USERS_REFERENCE = "Users";
 }

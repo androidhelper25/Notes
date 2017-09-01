@@ -4,21 +4,10 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_notes"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Notes" />
+            android:title="@string/notes" />
         <item
             android:id="@+id/nav_reminders"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Reminders" />
+            android:title="@string/reminders" />
     </group>
-
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-        </menu>
-    </item>
 
 </menu>

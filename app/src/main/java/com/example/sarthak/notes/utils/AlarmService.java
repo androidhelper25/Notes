@@ -18,22 +18,18 @@ public class AlarmService extends IntentService {
 
     @Override
     public void onHandleIntent(Intent intent) {
-        sendNotification("Wake Up! Wake Up!");
+        sendNotification("Alarm");
     }
 
     private void sendNotification(String msg) {
-        NotificationManager alarmNotificationManager =
-                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager alarmNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, NotesActivity.class), 0);
-
-        NotificationCompat.Builder alamNotificationBuilder = new NotificationCompat.Builder(
-                this).setContentTitle("Alarm").setSmallIcon(R.drawable.ic_menu_send)
+        NotificationCompat.Builder alamNotificationBuilder = new NotificationCompat.Builder(this)
+                .setContentTitle(getString(R.string.app_name))
+                .setSmallIcon(R.drawable.notification_icon)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
                 .setContentText(msg);
 
-
-        alamNotificationBuilder.setContentIntent(contentIntent);
         alarmNotificationManager.notify(1, alamNotificationBuilder.build());
     }
 }

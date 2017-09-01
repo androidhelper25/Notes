@@ -7,7 +7,6 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,9 +58,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
     String notesBody = "";
     String noteReminderYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
     String noteReminderMonth = String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-    String noteReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE) + 1);
-    String noteReminderHour = String.valueOf(20);
-    String noteReminderMinute = String.valueOf(0);
+    String noteReminderDate = String.valueOf(Calendar.getInstance().get(Calendar.DATE));
+    String noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
+    String noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
 
     int count, notesPosition;
 
@@ -92,7 +90,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
         View view = inflater.inflate(R.layout.fragment_take_note_reminders, container, false);
 
-        // Set title bar
+        // set title bar
         ((NotesActivity) getActivity()).getSupportActionBar().setTitle(R.string.reminders);
 
         // set spinner items to string array
@@ -110,8 +108,6 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
         // set up view components
         setUpView(view);
-        // set up date and time picker
-        setUpDateTimePicker();
 
         // get total number of items in 'Notes' in firebase database
         getNoteRemindersCount();
@@ -138,6 +134,9 @@ public class TakeNoteRemindersFragment extends Fragment implements
         ((NotesActivity) context).setImageListener = this;
     }
 
+    //----------------------------------------------------------------------------------------------
+    // button onClick listener
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view) {
 
@@ -251,7 +250,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 2 :
 
-                        datePickerDialog.show();
+                        setUpDatePicker();
                         break;
                 }
                 break;
@@ -280,7 +279,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                     case 3 :
 
-                        timePickerDialog.show();
+                        setUpTimePicker();
                         break;
                 }
                 break;
@@ -326,7 +325,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                 noteReminderMinute = String.valueOf(minute);
             } else {
 
-                Toast.makeText(getActivity(), "Invalid Time.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.invalid_time_toast, Toast.LENGTH_SHORT).show();
                 // set alarm for after 1 hour as default
                 noteReminderHour = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + 1);
                 noteReminderMinute = String.valueOf(Calendar.getInstance().get(Calendar.MINUTE));
@@ -411,7 +410,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
                         if (task.isSuccessful()) {
 
-                            //setAlarm(setAlarm);
+                            setAlarm(calendar);
                             firebaseUploadDataManager.uploadImageToFirebase(notesDatabase, imageStorage, notesImageUri);
                         }
                     }
@@ -426,11 +425,6 @@ public class TakeNoteRemindersFragment extends Fragment implements
                         if (task.isSuccessful()) {
 
                             setAlarm(calendar);
-
-                            if (getActivity() != null) {
-
-                                Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
-                            }
                         }
                     }
                 });
@@ -452,17 +446,22 @@ public class TakeNoteRemindersFragment extends Fragment implements
     /**
      * Set up date and time picker dialog
      */
-    private void setUpDateTimePicker() {
+    private void setUpDatePicker() {
 
         datePickerDialog = new DatePickerDialog(getActivity(), this,
                 Calendar.getInstance().get(Calendar.YEAR),
                 Calendar.getInstance().get(Calendar.MONTH),
                 Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+
+    private void setUpTimePicker() {
 
         timePickerDialog = new TimePickerDialog(getActivity(), this,
                 Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
                 Calendar.getInstance().get(Calendar.MINUTE), true);
+        timePickerDialog.show();
     }
 
     /**
@@ -507,10 +506,18 @@ public class TakeNoteRemindersFragment extends Fragment implements
 
     private void setAlarm(Calendar setAlarm) {
 
-        Intent intent = new Intent(getActivity(), AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, setAlarm.getTimeInMillis(), pendingIntent);
+        Calendar current = Calendar.getInstance();
+
+        if (setAlarm.compareTo(current) > 0) {
+
+            if (getActivity() != null) {
+
+                Intent intent = new Intent(getActivity(), AlarmReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), 0, intent, 0);
+                AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, setAlarm.getTimeInMillis(), pendingIntent);
+            }
+        }
     }
 
     /**
@@ -538,6 +545,7 @@ public class TakeNoteRemindersFragment extends Fragment implements
                         .into(mNotesImage);
             }
 
+            this.notesTitle = noteRemindersData.getNotesTitle();
             this.noteReminderYear = noteRemindersData.getNoteReminderYear();
             this.noteReminderMonth = noteRemindersData.getNoteReminderMonth();
             this.noteReminderDate = noteRemindersData.getNoteReminderDate();

@@ -8,6 +8,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.util.Log;
 import android.widget.Toast;
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
@@ -18,9 +19,9 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         //this will sound the alarm tone
         //this will sound the alarm once, if you wish to
         //raise alarm in loop continuously then use MediaPlayer and setLooping(true)
-        Toast.makeText(context, "Fool", Toast.LENGTH_SHORT).show();
         Uri alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         Ringtone ringtone = RingtoneManager.getRingtone(context, alarmUri);
+        Log.e(String.valueOf(alarmUri), String.valueOf(ringtone));
         ringtone.play();
 
         //this will send a notification message

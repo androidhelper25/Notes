@@ -27,8 +27,8 @@
 
     <ImageButton
         android:id="@+id/checklist_delete"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/remove_button_size"
+        android:layout_height="@dimen/remove_button_size"
         android:layout_centerVertical="true"
         android:src="@drawable/close_button"
         android:scaleType="fitXY"

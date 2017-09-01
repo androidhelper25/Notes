@@ -1,6 +1,8 @@
 package com.example.sarthak.notes.fragments;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -97,6 +99,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
     @Override
     public void onLongClick(View view, int position) {
 
+        removeRemindersFromList(position);
     }
 
     /**
@@ -111,31 +114,6 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
     }
 
     /**
-     * Check is key-value pairs
-     */
-    private void readRemindersFromFirebase() {
-
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.exists()) {
-
-                    readData();
-                } else {
-
-                    progressDialog.dismiss();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    /**
      * Read firebase database and store values of notes as an arraylist object.
      *
      * Since notesBody is a key that will be specified only for Notes and not for Checklists,
@@ -145,7 +123,7 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
      * To maintain a track of the type of note that is added to notesList, a string value
      * specifying the type of note is added to 'typeOfNote'.
      */
-    public void readData() {
+    public void readRemindersFromFirebase() {
 
         FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
         String currentUser = firebaseAuthorisation.getCurrentUser();
@@ -194,5 +172,59 @@ public class RemindersFragment extends Fragment implements RemindersRecyclerView
             // dismiss progress dialog
             progressDialog.dismiss();
         }
+    }
+
+    /**
+     * Creates an alert dialog to confirm user to remove Note.
+     *
+     * @param position is the index of the Note in the recyclerView
+     */
+    private void removeRemindersFromList(final int position) {
+
+        // setup alert dialog
+        new AlertDialog.Builder(getActivity())
+                .setMessage(R.string.delete_note_alert_message)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        removeReminders(position);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
+    private void removeReminders(int position) {
+
+        final int notePosition = position + 1;
+
+        // get firebase current user
+        String currentUser = new FirebaseAuthorisation(getActivity()).getCurrentUser();
+
+        DatabaseReference removeDataReference = mDatabase.child(currentUser).child(Constants.TYPE_REMINDERS)
+                .child(Constants.TYPE_REMINDERS + "_0" + String.valueOf(notePosition));
+        removeDataReference.removeValue();
+
+        //-------------------------------------------------------------------------------------
+        // update index of news items following deleted news item
+        //-------------------------------------------------------------------------------------
+        // decrease index of following news items by 1.
+        for (int i = notePosition + 1 ; i <= remindersList.size() ; i++) {
+
+            DatabaseReference remindersReference = mDatabase.child(currentUser)
+                    .child(Constants.TYPE_REMINDERS).child(Constants.TYPE_REMINDERS + "_0" + String.valueOf(i - 1));
+
+            Object remindersItem = remindersList.get(i - 1);
+
+            remindersReference.setValue(remindersItem);
+        }
+
+        // remove last item in firebase database as it has been copied to its previous location
+        DatabaseReference removeDatabaseFinalValueReference = mDatabase.child(currentUser)
+                .child(Constants.TYPE_REMINDERS).child(Constants.TYPE_REMINDERS + "_0" + String.valueOf(remindersList.size()));
+        removeDatabaseFinalValueReference.removeValue();
     }
 }

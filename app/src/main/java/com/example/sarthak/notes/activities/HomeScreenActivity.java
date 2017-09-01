@@ -42,7 +42,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
     TextView profileName, profileEmail;
 
     // home activity view components
-    ImageButton buttonChecklist, buttonImage;
+    ImageButton buttonChecklist;
     TextView takeNote;
 
     @Override
@@ -75,7 +75,6 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         //------------------------------------------------------------------------------------
         takeNote.setOnClickListener(this);
         buttonChecklist.setOnClickListener(this);
-        buttonImage.setOnClickListener(this);
     }
 
     @Override
@@ -98,6 +97,7 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
         // launch Notes activity
         Intent notesIntent = new Intent(HomeScreenActivity.this, NotesActivity.class);
 
+        // check for the value of 'noteType' and launch the fragment accordingly
         switch (view.getId()) {
 
             case R.id.textViewNotes :
@@ -168,7 +168,6 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
 
         takeNote = (TextView) findViewById(R.id.textViewNotes);
         buttonChecklist = (ImageButton) findViewById(R.id.button_checkList);
-        buttonImage = (ImageButton) findViewById(R.id.buttonMessage);
     }
 
     /**
@@ -219,7 +218,11 @@ public class HomeScreenActivity extends AppCompatActivity implements NavigationV
 
                 User user = dataSnapshot.getValue(User.class);
 
-                Picasso.with(HomeScreenActivity.this).load(user.getProfileImage()).into(profileImage);
+                // display data in navigation view components
+                Picasso.with(HomeScreenActivity.this)
+                        .load(user.getProfileImage())
+                        .placeholder(R.drawable.default_profile_picture)
+                        .into(profileImage);
                 profileName.setText(user.getProfileName());
                 profileEmail.setText(user.getProfileEmail());
             }

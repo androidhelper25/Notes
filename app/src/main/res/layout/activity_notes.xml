@@ -19,20 +19,20 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabGallery"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_margin="21dp"
+        android:layout_width="@dimen/fab_size"
+        android:layout_height="@dimen/fab_size"
+        android:layout_margin="@dimen/fab_margin"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         app:srcCompat="@drawable/fab_gallery" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabCamera"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="@dimen/fab_size"
+        android:layout_height="@dimen/fab_size"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="21dp"
+        android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/fab_camera" />
 
     <android.support.design.widget.FloatingActionButton

@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TakeNotesFragment extends Fragment implements BackButtonListener, SetImageListener {
+
+    private String TAG = "MSG";
 
     String notesTitle = "";
     String notesBody = "";
@@ -76,7 +79,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         displayData();
 
         //------------------------------------------------------------------------------------------
-        // textChangedListeners for edit texts
+        // edit text's textChangedListeners
         //------------------------------------------------------------------------------------------
         mNotesTitleEt.addTextChangedListener(titleWatcher);
         mNotesBodyEt.addTextChangedListener(bodyWatcher);
@@ -211,7 +214,10 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
                         if (task.isSuccessful()) {
 
-                            Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
+                            if (getActivity() != null) {
+
+                                Log.i(TAG, getString(R.string.note_added_toast));
+                            }
                         }
                     }
                 });
@@ -237,11 +243,11 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
         // check notesData to avoid NullPointerException for a new Note
         if (notesData != null) {
 
-            this.notesTitle = notesData.getNotesTitle();
-            this.notesBody = notesData.getNotesBody();
+            notesTitle = notesData.getNotesTitle();
+            notesBody = notesData.getNotesBody();
 
-            mNotesTitleEt.setText(notesData.getNotesTitle());
-            mNotesBodyEt.setText(notesData.getNotesBody());
+            mNotesTitleEt.setText(notesTitle);
+            mNotesBodyEt.setText(notesBody);
 
             if (notesData.getImageUri() != null) {
 

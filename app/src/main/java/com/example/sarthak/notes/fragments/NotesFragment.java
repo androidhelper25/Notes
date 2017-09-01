@@ -1,14 +1,18 @@
 package com.example.sarthak.notes.fragments;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -83,12 +87,12 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
         if (typeOfNote.get(position).equals(Constants.TYPE_NOTES)) {
 
             notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_NOTES);
-            notesIntent.putExtra(Constants.INTENT_PASS_NOTES, (Notes) notesList.get(position));
+            notesIntent.putExtra(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Notes) notesList.get(position));
         }
         else if (typeOfNote.get(position).equals(Constants.TYPE_CHECKLISTS)) {
 
             notesIntent.putExtra(Constants.INTENT_PASS_NOTES_TYPE, Constants.INTENT_PASS_CHECKLISTS);
-            notesIntent.putExtra(Constants.INTENT_PASS_NOTES, (Checklists) notesList.get(position));
+            notesIntent.putExtra(Constants.INTENT_PASS_SERIALIZABLE_OBJECT, (Checklists) notesList.get(position));
         }
 
         startActivity(notesIntent);
@@ -97,6 +101,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
     @Override
     public void onLongClick(View view, int position) {
 
+        removeNotesFromList(position);
     }
 
     /**
@@ -111,32 +116,7 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
     }
 
     /**
-     * Check is key-value pairs
-     */
-    private void readNotesFromFirebase() {
-
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.exists()) {
-
-                    readData();
-                } else {
-
-                    progressDialog.dismiss();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    /**
-     * Read firebase database and store values of notes as an arraylist object.
+     * Read firebase database and store values of notes as an Object arraylist.
      *
      * Since notesBody is a key that will be specified only for Notes and not for Checklists,
      * a check for the same is made and data is added to 'notesList' as 'Notes' if notesBody
@@ -145,13 +125,13 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
      * To maintain a track of the type of note that is added to notesList, a string value
      * specifying the type of note is added to 'typeOfNote'.
      */
-    public void readData() {
+    public void readNotesFromFirebase() {
 
         FirebaseAuthorisation firebaseAuthorisation = new FirebaseAuthorisation(getActivity());
         String currentUser = firebaseAuthorisation.getCurrentUser();
 
         DatabaseReference notesDatabase;
-        notesDatabase = mDatabase.child(currentUser).child("Notes");
+        notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES);
 
         if (notesDatabase != null) {
 
@@ -194,5 +174,59 @@ public class NotesFragment extends Fragment implements NotesRecyclerViewItemClic
             // dismiss progress dialog
             progressDialog.dismiss();
         }
+    }
+
+    /**
+     * Creates an alert dialog to confirm user to remove Note.
+     *
+     * @param position is the index of the Note in the recyclerView
+     */
+    private void removeNotesFromList(final int position) {
+
+        // setup alert dialog
+        new AlertDialog.Builder(getActivity())
+                .setMessage(R.string.delete_note_alert_message)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        removeNotes(position);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
+    private void removeNotes(int position) {
+
+        final int notePosition = position + 1;
+
+        // get firebase current user
+        String currentUser = new FirebaseAuthorisation(getActivity()).getCurrentUser();
+
+        DatabaseReference removeDataReference = mDatabase.child(currentUser).child(Constants.TYPE_NOTES)
+                .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notePosition));
+        removeDataReference.removeValue();
+
+        //-------------------------------------------------------------------------------------
+        // update index of news items following deleted news item
+        //-------------------------------------------------------------------------------------
+        // decrease index of following news items by 1.
+        for (int i = notePosition + 1 ; i <= notesList.size() ; i++) {
+
+            DatabaseReference notesReference = mDatabase.child(currentUser)
+                    .child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(i - 1));
+
+            Object notesItem = notesList.get(i - 1);
+
+            notesReference.setValue(notesItem);
+        }
+
+        // remove last item in firebase database as it has been copied to its previous location
+        DatabaseReference removeDatabaseFinalValueReference = mDatabase.child(currentUser)
+                .child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesList.size()));
+        removeDatabaseFinalValueReference.removeValue();
     }
 }

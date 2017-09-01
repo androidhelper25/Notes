@@ -100,10 +100,19 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
                 notesViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
                         // set up listener for recycler view item click
                         // callback in NotesFragment
                         onNotesRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
+                    }
+                });
+
+                notesViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        // set up listener for recycler view item long click
+                        // callback in NotesFragment
+                        onNotesRecyclerViewItemClickListener.onLongClick(view,holder.getAdapterPosition());
+                        return true;
                     }
                 });
                 break;
@@ -117,10 +126,19 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
                 checklistsViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
                         // set up listener for recycler view item click
                         // callback in NotesFragment
                         onNotesRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
+                    }
+                });
+
+                checklistsViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        // set up listener for recycler view item long click
+                        // callback in NotesFragment
+                        onNotesRecyclerViewItemClickListener.onLongClick(view,holder.getAdapterPosition());
+                        return true;
                     }
                 });
                 break;

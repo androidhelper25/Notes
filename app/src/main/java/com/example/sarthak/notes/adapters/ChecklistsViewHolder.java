@@ -44,10 +44,6 @@ public class ChecklistsViewHolder extends RecyclerView.ViewHolder {
         mChecklistList.setAdapter(viewChecklistsRecyclerAdapter);
 
         // set notesTitle to 'Title' text view
-        if (checklists.getNotesTitle().equals("")) {
-            mTitleTv.setHeight(0);
-        } else {
-            mTitleTv.setText(checklists.getNotesTitle());
-        }
+        mTitleTv.setText(checklists.getNotesTitle());
     }
 }

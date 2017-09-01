@@ -3,7 +3,6 @@ package com.example.sarthak.notes.adapters;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +43,7 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
     @Override
     public TakeChecklistsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View itemView = mInflater.inflate(R.layout.cardview_take_checklist, parent, false);
+        View itemView = mInflater.inflate(R.layout.view_take_checklist, parent, false);
 
         return new TakeChecklistsViewHolder(itemView);
     }

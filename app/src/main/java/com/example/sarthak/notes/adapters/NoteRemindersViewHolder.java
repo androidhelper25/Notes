@@ -11,6 +11,8 @@ public class NoteRemindersViewHolder extends RecyclerView.ViewHolder {
 
     View itemView;
 
+    String updatedMinute, updatedHour;
+
     private TextView mNotesTitleTv, mNotesBodyTv, mNotesReminderTv;
 
     public NoteRemindersViewHolder(View itemView) {
@@ -39,11 +41,22 @@ public class NoteRemindersViewHolder extends RecyclerView.ViewHolder {
         // set notesBody to 'Body' text view
         mNotesBodyTv.setText(reminders.getNotesBody());
 
+        if (Integer.parseInt(reminders.getNoteReminderMinute()) < 10) {
+            updatedMinute = "0" + reminders.getNoteReminderMinute();
+        } else {
+            updatedMinute = reminders.getNoteReminderMinute();
+        }
+
+        if (Integer.parseInt(reminders.getNoteReminderHour()) < 10) {
+            updatedHour = "0" + reminders.getNoteReminderHour();
+        } else {
+            updatedHour = reminders.getNoteReminderHour();
+        }
+
         // set reminder date to 'Reminder' textView
         mNotesReminderTv.setText(reminders.getNoteReminderDate() + "/" +
                                  reminders.getNoteReminderMonth() + "/" +
                                  reminders.getNoteReminderYear() + ", " +
-                                 reminders.getNoteReminderHour() + ":" +
-                                 reminders.getNoteReminderMinute());
+                                 updatedHour + ":" + updatedMinute);
     }
 }

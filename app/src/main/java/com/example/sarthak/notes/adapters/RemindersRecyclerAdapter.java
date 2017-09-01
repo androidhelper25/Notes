@@ -101,10 +101,19 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                 noteRemindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
                         // set up listener for recycler view item click
                         // callback in RemindersFragment
                         onRemindersRecyclerViewItemClickListener.onClick(view , holder.getAdapterPosition());
+                    }
+                });
+
+                noteRemindersViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        // set up listener for recycler view item long click
+                        // callback in NotesFragment
+                        onRemindersRecyclerViewItemClickListener.onLongClick(view,holder.getAdapterPosition());
+                        return true;
                     }
                 });
                 break;
@@ -118,10 +127,19 @@ public class RemindersRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.
                 checklistRemindersViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
                         // set up listener for recycler view item click
                         // callback in RemindersFragment
                         onRemindersRecyclerViewItemClickListener.onClick(view, holder.getAdapterPosition());
+                    }
+                });
+
+                checklistRemindersViewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        // set up listener for recycler view item long click
+                        // callback in NotesFragment
+                        onRemindersRecyclerViewItemClickListener.onLongClick(view,holder.getAdapterPosition());
+                        return true;
                     }
                 });
                 break;

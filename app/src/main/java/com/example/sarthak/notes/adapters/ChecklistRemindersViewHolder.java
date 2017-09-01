@@ -14,6 +14,8 @@ public class ChecklistRemindersViewHolder extends RecyclerView.ViewHolder {
 
     String checklistType = "ChecklistReminders";
 
+    String updatedMinute, updatedHour;
+
     View itemView;
 
     private TextView mTitleTv,mChecklistReminderTv;
@@ -49,12 +51,23 @@ public class ChecklistRemindersViewHolder extends RecyclerView.ViewHolder {
             mTitleTv.setText(checklistReminders.getNotesTitle());
         }
 
+        if (Integer.parseInt(checklistReminders.getNoteReminderMinute()) < 10) {
+            updatedMinute = "0" + checklistReminders.getNoteReminderMinute();
+        } else {
+            updatedMinute = checklistReminders.getNoteReminderMinute();
+        }
+
+        if (Integer.parseInt(checklistReminders.getNoteReminderHour()) < 10) {
+            updatedHour = "0" + checklistReminders.getNoteReminderHour();
+        } else {
+            updatedHour = checklistReminders.getNoteReminderHour();
+        }
+
         // set reminder date to 'Reminder' textView
         mChecklistReminderTv.setText(checklistReminders.getNoteReminderDate() + "/" +
                 checklistReminders.getNoteReminderMonth() + "/" +
                 checklistReminders.getNoteReminderYear() + ", " +
-                checklistReminders.getNoteReminderHour() + ":" +
-                checklistReminders.getNoteReminderMinute());
+                updatedHour + ":" + updatedMinute);
     }
 
     /**

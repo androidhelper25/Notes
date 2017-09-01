@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -46,8 +47,12 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         // set up toolbar
         setUpToolbar();
 
+        // retrieve a set of values from HomeScreenActivity/NotesFragment/RemindersFragment
+        // notesType is the type of note, viz, 'Notes' or 'Reminders'
+        // notesPosition is the position of note in the arraylist for existing Note
+        // notesData is the data retrieved from firebase database for existing Note
         notesType = getIntent().getStringExtra(Constants.INTENT_PASS_NOTES_TYPE);
-        notesPosition = getIntent().getIntExtra("position", 0);
+        notesPosition = getIntent().getIntExtra(Constants.INTENT_PASS_POSITION, 0);
         notesData = getIntent().getSerializableExtra(Constants.INTENT_PASS_SERIALIZABLE_OBJECT);
 
         // set up view components
@@ -56,9 +61,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         // launch fragment view
         launchFragment();
 
-        //------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------
         // onClick listeners for floating buttons
-        //------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------
         fabAddCity.setOnClickListener(this);
         fabCamera.setOnClickListener(this);
         fabGallery.setOnClickListener(this);
@@ -69,6 +74,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         if(!isFABOpen) {
 
             super.onBackPressed();
+            // callback for back button pressed from respective fragment
             backButtonListener.backButtonPressed();
         }
 
@@ -89,6 +95,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
             case android.R.id.home :
 
                 super.onBackPressed();
+                // callback for back button pressed from respective fragment
                 backButtonListener.backButtonPressed();
                 break;
         }
@@ -96,7 +103,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
     }
 
     //----------------------------------------------------------------------------------------------
-    // onClick listener's callback
+    // fab onClick listener's callback
     //----------------------------------------------------------------------------------------------
     @Override
     public void onClick(View view) {
@@ -116,11 +123,7 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
 
                 // launch camera intent
                 Intent takePicture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                if (takePicture.resolveActivity(getPackageManager()) != null) {
-
-                    startActivityForResult(takePicture, Constants.CAMERA_REQUEST);
-                }
+                startActivityForResult(takePicture, Constants.CAMERA_REQUEST);
                 break;
 
             case R.id.fabGallery :
@@ -157,9 +160,9 @@ public class NotesActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    //-------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // floating action button animations
-    //-------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     private void showFABMenu(){
         isFABOpen=true;
         fabCamera.animate().translationY(-getResources().getDimension(R.dimen.standard_55));

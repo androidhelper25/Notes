@@ -10,12 +10,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.NotesActivity;
@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TakeChecklistsFragment extends Fragment implements CheckListListener, BackButtonListener, SetImageListener, TextWatcher {
+
+    private String TAG = "MSG";
 
     int count, notesPosition;
 
@@ -114,9 +116,9 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         ((NotesActivity) context).setImageListener = this;
     }
 
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // checkList component's click listeners
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     /**
      * Callback for enter key pressed in check list for adding data to checklist
      *
@@ -157,6 +159,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
         if (position < statusList.size()) {
 
+            // set status of each item in arraylist based on value of checkbox
             if (status) {
                 statusList.set(position, Constants.CHECKED_STATUS);
             } else {
@@ -183,14 +186,20 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
     @Override
     public void checklistReminderDeleteButtonPressed(int position) {
 
-        dataList.remove(position);
-        statusList.remove(position);
-        takeChecklistsRecyclerAdapter.notifyDataSetChanged();
+        if (position < dataList.size()) {
+
+            // remove item at specified position from arraylist
+            dataList.remove(position);
+            // remove item at specified position from arraylist
+            statusList.remove(position);
+            // update recycler view adapter
+            takeChecklistsRecyclerAdapter.notifyDataSetChanged();
+        }
     }
 
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     // editText textChanged listener
-    //----------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
     @Override
     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -235,17 +244,21 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
         final String currentUser = firebaseAuth.getCurrentUser();
 
         // set up an instance for firebase database
-        // if data is null, create new database reference. Else refer to existing database reference
+        // If data is null, create new database reference. Else refer to existing database reference.
         if (checklistsData != null) {
 
-            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition));
-            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesPosition) + ".jpg");
         } else {
 
             int notesCount = count;
 
-            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1));
-            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES).child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1) + ".jpg");
+            notesDatabase = mDatabase.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1));
+            imageStorage = mStorage.child(currentUser).child(Constants.TYPE_NOTES)
+                    .child(Constants.TYPE_NOTES + "_0" + String.valueOf(notesCount + 1) + ".jpg");
         }
 
         if (!(checklistsTitle.equals("") && dataList.isEmpty())) {
@@ -293,10 +306,9 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
                         if (task.isSuccessful()) {
 
-                                if (getActivity() != null) {
-
-                                    Toast.makeText(getActivity(), getString(R.string.note_added_toast), Toast.LENGTH_SHORT).show();
-                                }
+                            if (getActivity() != null) {
+                                Log.i(TAG, getString(R.string.note_added_toast));
+                            }
                         }
                     }
                 });
@@ -320,6 +332,8 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
 
         // check checklistsData to avoid NullPointerException for a new Note
         if (checklistsData != null) {
+
+            checklistsTitle = checklistsData.getNotesTitle();
 
             mChecklistsTitleEt.setText(checklistsData.getNotesTitle());
 

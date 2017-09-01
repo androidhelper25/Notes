@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.example.sarthak.notes.R;
 import com.example.sarthak.notes.activities.HomeScreenActivity;
 import com.example.sarthak.notes.models.User;
+import com.example.sarthak.notes.utils.Constants;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -62,7 +63,7 @@ public class FirebaseAuthorisation {
 
                             DatabaseReference mDatabase;
                             // create an instance of firebase database for the user
-                            mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(UID);
+                            mDatabase = FirebaseDatabase.getInstance().getReference().child(Constants.USERS_REFERENCE).child(UID);
 
                             User user = new User(account.getPhotoUrl(), account.getDisplayName(), account.getEmail());
 
@@ -86,9 +87,10 @@ public class FirebaseAuthorisation {
                                         ((Activity) mContext).finish();
                                     } else {
 
-                                        // display error message
+                                        // dismiss progress dialog
                                         mProgressDialog.dismiss();
-                                        Toast.makeText(mContext, "LOL", Toast.LENGTH_SHORT).show();
+                                        // display error message
+                                        Toast.makeText(mContext, R.string.login_error_toast, Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             });
