@@ -17,7 +17,7 @@
                 android:id="@+id/cardTitleTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="32sp"
+                android:textSize="@dimen/cardview_title_text_size"
                 android:layout_alignParentTop="true"
                 android:paddingTop="@dimen/cardview_padding"
                 android:paddingStart="@dimen/cardview_padding"
@@ -27,7 +27,7 @@
                 android:id="@+id/cardBodyTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
+                android:textSize="@dimen/cardview_body_text_size"
                 android:padding="@dimen/cardview_padding"
                 android:layout_below="@+id/cardTitleTv"/>
 
@@ -35,7 +35,7 @@
                 android:id="@+id/cardReminderTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="@dimen/cardview_reminder_text_size"
                 android:padding="4dp"
                 android:layout_marginStart="@dimen/cardview_padding"
                 android:layout_marginBottom="@dimen/cardview_padding"

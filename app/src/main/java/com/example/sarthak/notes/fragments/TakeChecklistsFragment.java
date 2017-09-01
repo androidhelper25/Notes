@@ -307,7 +307,7 @@ public class TakeChecklistsFragment extends Fragment implements CheckListListene
                         if (task.isSuccessful()) {
 
                             if (getActivity() != null) {
-                                Log.i(TAG, getString(R.string.note_added_toast));
+                                Log.i(TAG, getString(R.string.note_added));
                             }
                         }
                     }

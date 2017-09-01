@@ -24,14 +24,14 @@
                 android:layout_height="wrap_content"
                 android:background="@color/transparent"
                 android:hint="@string/title_hint"
-                android:textSize="24sp"
+                android:textSize="@dimen/cardview_title_text_size"
                 android:textColorHint="@color/colorDividerLine"
                 android:textColor="@color/colorPrimaryText"
                 android:inputType="textCapSentences|textMultiLine"
                 android:layout_below="@+id/notesImage"
-                android:layout_marginTop="25dp"
-                android:layout_marginStart="25dp"
-                android:layout_marginEnd="10dp"
+                android:layout_marginTop="@dimen/fragment_title_margin"
+                android:layout_marginStart="@dimen/fragment_title_margin"
+                android:layout_marginEnd="@dimen/fragment_title_margin"
                 android:maxLength="100"
                 android:maxLines="4" />
 
@@ -40,8 +40,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/checklistsTitle"
-                android:paddingTop="15dp"
-                android:paddingStart="25dp"
+                android:paddingTop="@dimen/fragment_body_margin"
+                android:paddingStart="@dimen/fragment_title_margin"
                 android:paddingEnd="10dp"
                 android:paddingBottom="10dp"
                 android:clipToPadding="false" />
@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/checklistList"
                 android:layout_marginTop="5dp"
-                android:layout_marginStart="25dp" />
+                android:layout_marginStart="@dimen/fragment_title_margin" />
 
         </RelativeLayout>
 

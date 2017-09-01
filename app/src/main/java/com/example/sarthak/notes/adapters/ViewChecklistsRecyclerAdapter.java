@@ -32,7 +32,7 @@ public class ViewChecklistsRecyclerAdapter extends RecyclerView.Adapter<ViewChec
     @Override
     public ViewChecklistsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View itemView = mInflater.inflate(R.layout.view_take_checklist, parent, false);
+        View itemView = mInflater.inflate(R.layout.view_checklist_item, parent, false);
 
         return new ViewChecklistsViewHolder(itemView);
     }

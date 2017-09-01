@@ -215,7 +215,7 @@ public class TakeNotesFragment extends Fragment implements BackButtonListener, S
 
                             if (getActivity() != null) {
 
-                                Log.i(TAG, getString(R.string.note_added_toast));
+                                Log.i(TAG, getString(R.string.note_added));
                             }
                         }
                     }

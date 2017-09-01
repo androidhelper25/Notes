@@ -18,7 +18,7 @@
                 android:id="@+id/cardTitleTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="32sp"
+                android:textSize="@dimen/cardview_title_text_size"
                 android:paddingTop="@dimen/cardview_padding"
                 android:paddingStart="8dp"
                 android:paddingEnd="@dimen/cardview_padding" />

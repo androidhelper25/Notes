@@ -43,7 +43,7 @@ public class TakeChecklistsRecyclerAdapter extends RecyclerView.Adapter<TakeChec
     @Override
     public TakeChecklistsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        View itemView = mInflater.inflate(R.layout.view_take_checklist, parent, false);
+        View itemView = mInflater.inflate(R.layout.view_checklist_item, parent, false);
 
         return new TakeChecklistsViewHolder(itemView);
     }

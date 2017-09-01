@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
-        android:textSize="20sp"
+        android:textSize="@dimen/cardview_body_text_size"
         android:background="#fff"
         android:layout_centerVertical="true"
         android:layout_toEndOf="@+id/checklist_checkbox"
